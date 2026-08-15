@@ -10,6 +10,11 @@ interface AdminViewProps {
 
 export default function AdminView({ onBack }: AdminViewProps) {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [activePaymentMethods, setActivePaymentMethods] = useState<string[]>([]);
+  const [activeSocialLinks, setActiveSocialLinks] = useState<string[]>([]);
+  const [newPaymentMethod, setNewPaymentMethod] = useState('');
+  const [newSocialLink, setNewSocialLink] = useState('');
+
   const [formData, setFormData] = useState<Business>({
     id: 'new',
     name: '',
@@ -21,13 +26,8 @@ export default function AdminView({ onBack }: AdminViewProps) {
     image: '',
     contact: {
       phone: '',
-      nequi: '',
-      nequiName: '',
-      daviplata: '',
-      daviplataName: '',
-      bancolombia: '',
-      bancolombiaName: ''
     },
+    socials: {},
     products: []
   });
 
@@ -72,6 +72,46 @@ export default function AdminView({ onBack }: AdminViewProps) {
       ...prev,
       contact: { ...prev.contact, [field]: value }
     }));
+  };
+
+  const handleSocialChange = (field: keyof NonNullable<Business['socials']>, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      socials: { ...prev.socials, [field]: value }
+    }));
+  };
+
+  const addPaymentMethod = () => {
+    if (newPaymentMethod && !activePaymentMethods.includes(newPaymentMethod)) {
+      setActivePaymentMethods([...activePaymentMethods, newPaymentMethod]);
+      setNewPaymentMethod('');
+    }
+  };
+
+  const removePaymentMethod = (method: string) => {
+    setActivePaymentMethods(activePaymentMethods.filter(m => m !== method));
+    setFormData(prev => {
+      const updatedContact = { ...prev.contact };
+      delete updatedContact[method as keyof typeof updatedContact];
+      delete updatedContact[`${method}Name` as keyof typeof updatedContact];
+      return { ...prev, contact: updatedContact };
+    });
+  };
+
+  const addSocialLink = () => {
+    if (newSocialLink && !activeSocialLinks.includes(newSocialLink)) {
+      setActiveSocialLinks([...activeSocialLinks, newSocialLink]);
+      setNewSocialLink('');
+    }
+  };
+
+  const removeSocialLink = (network: string) => {
+    setActiveSocialLinks(activeSocialLinks.filter(n => n !== network));
+    setFormData(prev => {
+      const updatedSocials = { ...prev.socials };
+      delete updatedSocials[network as keyof typeof updatedSocials];
+      return { ...prev, socials: updatedSocials };
+    });
   };
 
   return (
@@ -215,40 +255,82 @@ export default function AdminView({ onBack }: AdminViewProps) {
               </div>
 
               <div className="space-y-6">
-                {/* Nequi */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-stone-100">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Número Nequi</label>
-                    <input type="text" value={formData.contact.nequi || ''} onChange={e => handleContactChange('nequi', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="3001234567" />
+                {/* Dynamic Payment Methods */}
+                {activePaymentMethods.map(method => (
+                  <div key={method} className="relative grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-stone-100">
+                    <button type="button" onClick={() => removePaymentMethod(method)} className="absolute -top-2 right-0 text-stone-400 hover:text-red-500 transition-colors bg-white rounded-full"><X className="w-4 h-4" /></button>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 mb-1">Número {method.charAt(0).toUpperCase() + method.slice(1)}</label>
+                      <input type="text" value={(formData.contact as any)[method] || ''} onChange={e => handleContactChange(method as any, e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="3001234567" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-stone-700 mb-1">Titular {method.charAt(0).toUpperCase() + method.slice(1)}</label>
+                      <input type="text" value={(formData.contact as any)[`${method}Name`] || ''} onChange={e => handleContactChange(`${method}Name` as any, e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="Ej. Juan Perez" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Titular Nequi</label>
-                    <input type="text" value={formData.contact.nequiName || ''} onChange={e => handleContactChange('nequiName', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="Ej. Juan Perez" />
-                  </div>
+                ))}
+                
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                  <select 
+                    value={newPaymentMethod} 
+                    onChange={e => setNewPaymentMethod(e.target.value)}
+                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                  >
+                    <option value="">Añadir método de pago...</option>
+                    {!activePaymentMethods.includes('nequi') && <option value="nequi">Nequi</option>}
+                    {!activePaymentMethods.includes('daviplata') && <option value="daviplata">Daviplata</option>}
+                    {!activePaymentMethods.includes('bancolombia') && <option value="bancolombia">Bancolombia</option>}
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={addPaymentMethod}
+                    disabled={!newPaymentMethod}
+                    className="bg-rose-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Añadir
+                  </button>
                 </div>
+              </div>
 
-                {/* Daviplata */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-stone-100">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Número Daviplata</label>
-                    <input type="text" value={formData.contact.daviplata || ''} onChange={e => handleContactChange('daviplata', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="3001234567" />
+              <h2 className="text-xl font-bold mb-6 mt-8 border-b border-stone-100 pb-4 text-gray-900">Redes Sociales y Web</h2>
+              
+              <div className="space-y-4 mb-6">
+                {activeSocialLinks.map(network => (
+                  <div key={network} className="relative flex items-center gap-4">
+                    <div className="flex-1">
+                      <label className="block text-xs font-bold text-stone-700 mb-1">{network.charAt(0).toUpperCase() + network.slice(1)}</label>
+                      <input 
+                        type="text" 
+                        value={(formData.socials as any)[network] || ''} 
+                        onChange={e => handleSocialChange(network as any, e.target.value)} 
+                        className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                        placeholder={network === 'website' ? 'https://...' : '@usuario'} 
+                      />
+                    </div>
+                    <button type="button" onClick={() => removeSocialLink(network)} className="mt-5 text-stone-400 hover:text-red-500 transition-colors bg-stone-100 hover:bg-red-50 p-3 rounded-xl"><X className="w-5 h-5" /></button>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Titular Daviplata</label>
-                    <input type="text" value={formData.contact.daviplataName || ''} onChange={e => handleContactChange('daviplataName', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="Ej. Maria Lopez" />
-                  </div>
-                </div>
-
-                {/* Bancolombia */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pb-2">
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Cuenta Bancolombia</label>
-                    <input type="text" value={formData.contact.bancolombia || ''} onChange={e => handleContactChange('bancolombia', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="000-000000-00" />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-stone-700 mb-1">Titular Bancolombia</label>
-                    <input type="text" value={formData.contact.bancolombiaName || ''} onChange={e => handleContactChange('bancolombiaName', e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="Ej. Carlos Ruiz" />
-                  </div>
+                ))}
+                
+                <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+                  <select 
+                    value={newSocialLink} 
+                    onChange={e => setNewSocialLink(e.target.value)}
+                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                  >
+                    <option value="">Añadir red social...</option>
+                    {!activeSocialLinks.includes('instagram') && <option value="instagram">Instagram</option>}
+                    {!activeSocialLinks.includes('facebook') && <option value="facebook">Facebook</option>}
+                    {!activeSocialLinks.includes('tiktok') && <option value="tiktok">TikTok</option>}
+                    {!activeSocialLinks.includes('website') && <option value="website">Sitio Web</option>}
+                  </select>
+                  <button 
+                    type="button" 
+                    onClick={addSocialLink}
+                    disabled={!newSocialLink}
+                    className="bg-rose-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Añadir
+                  </button>
                 </div>
               </div>
 

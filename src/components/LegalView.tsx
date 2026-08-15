@@ -73,7 +73,7 @@ export default function LegalView({ onBack }: LegalViewProps) {
           </section>
 
           {/* Contacto */}
-          <section>
+          <section id="contacto">
             <h2 className="text-3xl font-extrabold text-gray-900 mb-6">Contacto y Soporte</h2>
             <div className="bg-stone-50 rounded-2xl p-6 border border-stone-200">
               <p className="text-stone-600 mb-6">

@@ -18,10 +18,6 @@ export default function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 relative z-10">
         <div className="text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-100 text-rose-800 font-semibold text-sm mb-6">
-            <span className="w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
-            Emergencia Sismo Colombia
-          </div>
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-8 leading-tight">
             RECONSTRUYAMOS JUNTOS: <br/>
             <span className="text-rose-600">Apoya a las Familias y Comunidades</span> Afectadas

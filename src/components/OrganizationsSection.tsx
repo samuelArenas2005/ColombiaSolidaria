@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heart, HeartHandshake, MapPin, PhoneCall } from 'lucide-react';
+import { Heart, HeartHandshake, MapPin, Search, Plus } from 'lucide-react';
 
 export default function OrganizationsSection() {
   return (
@@ -17,7 +17,7 @@ export default function OrganizationsSection() {
           {/* Org 1 */}
           <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col h-full">
             <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-gray-900">
-              <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+              <Plus className="w-5 h-5 text-rose-500" />
               Cruz Roja Colombiana
             </h3>
             <p className="text-stone-600 text-sm mb-6 flex-grow">
@@ -37,51 +37,41 @@ export default function OrganizationsSection() {
           {/* Org 2 */}
           <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col h-full">
             <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-gray-900">
-              <span className="w-3 h-3 rounded-full bg-orange-500"></span>
-              Defensa Civil
+              <MapPin className="w-5 h-5 text-emerald-600" />
+              Puntos Críticos y Ayuda
             </h3>
             <p className="text-stone-600 text-sm mb-6 flex-grow">
-              Apoyo logístico en la remoción de escombros y reubicación temporal de familias que perdieron su hogar.
+              Encuentra información sobre centros de acopio, rutas cerradas y líneas de telefonía de ayuda psicológica o jurídica.
             </p>
             <a 
-              href="https://www.defensacivil.gov.co" 
+              href="https://terremoto-cali-puntos-criticos.netlify.app" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full flex justify-center items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold py-3 rounded-xl transition-colors"
+              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
             >
-              <Heart className="w-4 h-4" />
-              SITIO OFICIAL
+              <MapPin className="w-4 h-4" />
+              VER MAPA Y CONTACTOS
             </a>
           </div>
 
-          {/* Acopio */}
-          <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 shadow-sm flex flex-col h-full">
-            <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-emerald-900">
-              <MapPin className="w-5 h-5 text-emerald-600" />
-              Centros de Acopio
+          {/* Org 3 */}
+          <div className="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm flex flex-col h-full">
+            <h3 className="text-xl font-bold mb-2 flex items-center gap-2 text-gray-900">
+              <Search className="w-5 h-5 text-blue-600" />
+              Haciendo Comunidad
             </h3>
-            <p className="text-emerald-800 text-sm mb-6 flex-grow">
-              Lleva alimentos no perecederos, agua, cobijas y artículos de aseo a los puntos oficiales:
+            <p className="text-stone-600 text-sm mb-6 flex-grow">
+              Información sobre las diferentes zonas de la ciudad que aún requieren ayuda voluntaria para remover escombros y limpieza.
             </p>
-            <ul className="space-y-3 mb-6 text-sm text-emerald-700 font-medium">
-              <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-500">•</span>
-                Sedes de la Cruz Roja (Principales Ciudades)
-              </li>
-              <li className="flex items-start gap-2">
-                <span className="font-bold text-emerald-500">•</span>
-                Alcaldías Municipales (Zonas Afectadas)
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Emergency Info */}
-        <div className="bg-rose-50 p-6 rounded-2xl flex flex-col sm:flex-row items-center justify-center gap-6 text-center sm:text-left border border-rose-100">
-          <PhoneCall className="w-10 h-10 text-rose-500 flex-shrink-0" />
-          <div>
-            <h4 className="font-bold text-lg text-rose-900">Líneas de Emergencia Nacionales</h4>
-            <p className="text-rose-700 text-sm mt-1">Línea Única de Emergencias: <strong className="text-rose-900">123</strong> | Cruz Roja: <strong className="text-rose-900">132</strong> | Defensa Civil: <strong className="text-rose-900">144</strong></p>
+            <a 
+              href="https://personnofound.github.io/HaciendoComunidad/" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+            >
+              <Search className="w-4 h-4" />
+              VER ZONAS AFECTADAS
+            </a>
           </div>
         </div>
 

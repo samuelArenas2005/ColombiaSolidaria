@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Business } from '../data/businesses';
-import { X, HandHeart, ShoppingBag, Phone, Copy, CheckCircle2, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, HandHeart, ShoppingBag, Phone, Copy, CheckCircle2, ShieldCheck, ZoomIn, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Instagram, Facebook, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 const obfuscateName = (name?: string) => {
@@ -108,9 +108,39 @@ export default function QuickViewModal({ business, onClose }: QuickViewModalProp
                   <span className="text-sm font-bold text-stone-400 tracking-wider uppercase mb-1">
                     {business.category}
                   </span>
-                  <h3 className="text-2xl font-extrabold text-gray-900 mb-4 leading-tight">
+                  <h3 className="text-2xl font-extrabold text-gray-900 mb-2 leading-tight">
                     {business.name}
                   </h3>
+                  
+                  {business.socials && Object.keys(business.socials).length > 0 && (
+                    <div className="flex flex-wrap items-center gap-3 mb-4">
+                      {business.socials.instagram && (
+                        <a href={business.socials.instagram.startsWith('http') ? business.socials.instagram : `https://instagram.com/${business.socials.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-rose-500 transition-colors bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-md">
+                          <Instagram className="w-3.5 h-3.5" />
+                          {business.socials.instagram.startsWith('http') ? 'Instagram' : business.socials.instagram}
+                        </a>
+                      )}
+                      {business.socials.facebook && (
+                        <a href={business.socials.facebook.startsWith('http') ? business.socials.facebook : `https://facebook.com/${business.socials.facebook.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-blue-600 transition-colors bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-md">
+                          <Facebook className="w-3.5 h-3.5" />
+                          Facebook
+                        </a>
+                      )}
+                      {business.socials.tiktok && (
+                        <a href={business.socials.tiktok.startsWith('http') ? business.socials.tiktok : `https://tiktok.com/${business.socials.tiktok.startsWith('@') ? '' : '@'}${business.socials.tiktok.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-black transition-colors bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-md">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
+                          {business.socials.tiktok.startsWith('http') ? 'TikTok' : business.socials.tiktok}
+                        </a>
+                      )}
+                      {business.socials.website && (
+                        <a href={business.socials.website.startsWith('http') ? business.socials.website : `https://${business.socials.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-xs font-bold text-stone-500 hover:text-emerald-600 transition-colors bg-stone-100 hover:bg-stone-200 px-2 py-1 rounded-md">
+                          <Globe className="w-3.5 h-3.5" />
+                          Sitio Web
+                        </a>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-stone-600 mb-6 leading-relaxed">
                     {business.fullDescription}
                   </p>

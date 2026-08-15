@@ -2,14 +2,28 @@ import React from 'react';
 import { ShieldCheck, HeartHandshake, AlertTriangle, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
-  onNavigate: (view: 'home' | 'admin' | 'legal') => void;
+  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal') => void;
 }
 
 export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
   return (
     <>
+      {/* SVG Transition Divider */}
+      <div className="w-full overflow-hidden leading-none bg-stone-50">
+        <svg 
+          className="block w-full h-12 sm:h-24 md:h-32" 
+          viewBox="0 0 1200 120" 
+          preserveAspectRatio="none"
+        >
+          <path 
+            d="M0,0V46.29c47.79,22.2,103.59,32.17,158,28,70.36-5.37,136.33-33.31,206.8-37.5C438.64,32.43,512.34,53.67,583,72.05c69.27,18,138.3,24.88,209.4,13.08,36.15-6,69.85-17.84,104.45-29.34C989.49,25,1113-14.29,1200,52.47V120H0Z" 
+            className="fill-stone-900"
+          ></path>
+        </svg>
+      </div>
+
       {/* Transparency Section */}
-      <section id="transparencia" className="bg-stone-900 text-stone-100 py-20">
+      <section id="transparencia" className="bg-stone-900 text-stone-100 py-16 sm:py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <ShieldCheck className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
@@ -42,7 +56,16 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
               <p className="text-stone-400 leading-relaxed mb-4">
                 Si detectas inconsistencias con algún negocio publicado, puedes reportarlo inmediatamente para que nuestro equipo voluntario realice una segunda auditoría.
               </p>
-              <button className="flex items-center gap-2 text-rose-400 hover:text-rose-300 font-bold text-sm uppercase tracking-wider transition-colors">
+              <button 
+                onClick={() => {
+                  onNavigate('legal');
+                  setTimeout(() => {
+                    const el = document.getElementById('contacto');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }, 100);
+                }}
+                className="flex items-center gap-2 text-rose-400 hover:text-rose-300 font-bold text-sm uppercase tracking-wider transition-colors"
+              >
                 <AlertTriangle className="w-4 h-4" />
                 Reportar Perfil
               </button>
@@ -58,7 +81,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
           <p className="text-rose-100 mb-8 text-lg">
             Regístrate en nuestro directorio para recibir apoyo de la comunidad. Es completamente gratis y solo tomará unos minutos verificar tus datos.
           </p>
-          <button onClick={() => onNavigate('admin')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-bold hover:bg-stone-100 transition-colors shadow-lg">
+          <button onClick={() => onNavigate('admin-login')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-bold hover:bg-stone-100 transition-colors shadow-lg">
             LLENAR FORMULARIO DE REGISTRO
             <ArrowRight className="w-5 h-5" />
           </button>

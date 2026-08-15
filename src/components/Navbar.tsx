@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { HeartHandshake, Menu, X, ShieldAlert } from 'lucide-react';
 
 interface NavbarProps {
-  currentView: 'home' | 'admin';
-  onNavigate: (view: 'home' | 'admin') => void;
+  currentView: 'home' | 'admin' | 'admin-login' | 'legal';
+  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal') => void;
 }
 
 export default function Navbar({ currentView, onNavigate }: NavbarProps) {
@@ -18,6 +18,16 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
       }, 100);
     }
   };
+
+  const onAdminClick = () => {
+    if (currentView === 'home' || currentView === 'legal') {
+      onNavigate('admin-login');
+    } else {
+      onNavigate('home');
+    }
+  };
+
+  const isAdminView = currentView === 'admin' || currentView === 'admin-login';
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
@@ -46,11 +56,11 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
             )}
             
             <button 
-              onClick={() => onNavigate(currentView === 'home' ? 'admin' : 'home')}
+              onClick={onAdminClick}
               className="flex items-center gap-1.5 bg-stone-100 text-stone-700 border border-stone-200 px-4 py-2 rounded-full font-bold text-sm hover:bg-stone-200 transition-colors"
             >
               <ShieldAlert className="w-4 h-4" />
-              {currentView === 'home' ? 'Admin' : 'Volver'}
+              {!isAdminView ? 'Admin' : 'Volver'}
             </button>
             <a 
               href="#registrar" 
@@ -64,9 +74,9 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-4">
             <button 
-              onClick={() => onNavigate(currentView === 'home' ? 'admin' : 'home')}
+              onClick={onAdminClick}
               className="flex items-center justify-center bg-stone-100 text-stone-700 border border-stone-200 w-9 h-9 rounded-full hover:bg-stone-200 transition-colors"
-              title={currentView === 'home' ? 'Admin' : 'Volver'}
+              title={!isAdminView ? 'Admin' : 'Volver'}
             >
               <ShieldAlert className="w-4 h-4" />
             </button>

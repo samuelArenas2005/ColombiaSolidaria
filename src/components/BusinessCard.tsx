@@ -1,6 +1,6 @@
 import React from 'react';
 import { Business } from '../data/businesses';
-import { HandHeart, ShoppingBag, Eye } from 'lucide-react';
+import { HandHeart, ShoppingBag, Eye, Instagram, Facebook, Globe, Link as LinkIcon } from 'lucide-react';
 
 interface BusinessCardProps {
   business: Business;
@@ -45,9 +45,19 @@ export default function BusinessCard({ business, onOpen }: BusinessCardProps) {
       </div>
       
       <div className="p-6 flex flex-col flex-grow">
-        <h3 className="text-xl font-bold text-gray-900 mb-2 leading-tight">
+        <h3 className="text-xl font-bold text-gray-900 mb-1.5 leading-tight">
           {business.name || 'Nombre del Negocio'}
         </h3>
+        
+        {business.socials && Object.keys(business.socials).length > 0 && (
+          <div className="flex items-center gap-3 mb-3">
+            {business.socials.instagram && <Instagram className="w-4 h-4 text-stone-400" />}
+            {business.socials.facebook && <Facebook className="w-4 h-4 text-stone-400" />}
+            {business.socials.tiktok && <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>}
+            {business.socials.website && <Globe className="w-4 h-4 text-stone-400" />}
+          </div>
+        )}
+
         <p className="text-gray-600 text-sm leading-relaxed mb-6 flex-grow">
           {business.description || 'Descripción corta del negocio.'}
         </p>
