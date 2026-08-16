@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShieldCheck, Scale, Mail, Phone } from 'lucide-react';
 
-interface LegalViewProps {
-  onBack: () => void;
-}
+export default function LegalView() {
+  const navigate = useNavigate();
 
-export default function LegalView({ onBack }: LegalViewProps) {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -15,8 +14,8 @@ export default function LegalView({ onBack }: LegalViewProps) {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <button 
-          onClick={onBack}
-          className="flex items-center gap-2 text-stone-500 hover:text-stone-900 font-bold mb-8 transition-colors"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 text-stone-500 hover:text-stone-900 font-bold mb-8 transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-5 h-5" />
           Volver al inicio

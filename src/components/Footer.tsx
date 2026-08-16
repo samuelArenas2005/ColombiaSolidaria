@@ -1,11 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, HeartHandshake, AlertTriangle, ArrowRight } from 'lucide-react';
 
-interface FooterProps {
-  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal' | 'google-form') => void;
-}
+export default function TransparencyAndFooter() {
+  const navigate = useNavigate();
 
-export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
   return (
     <>
       {/* SVG Transition Divider */}
@@ -58,7 +57,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
               </p>
               <button 
                 onClick={() => {
-                  onNavigate('legal');
+                  navigate('/legal');
                   setTimeout(() => {
                     const el = document.getElementById('contacto');
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -81,7 +80,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
           <p className="text-rose-100 mb-8 text-lg">
             Regístrate en nuestro directorio para recibir apoyo de la comunidad. Es completamente gratis y solo tomará unos minutos verificar tus datos.
           </p>
-          <button onClick={() => onNavigate('google-form')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-semibold hover:bg-stone-100 transition-colors shadow-lg cursor-pointer">
+          <button onClick={() => navigate('/formulario')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-semibold hover:bg-stone-100 transition-colors shadow-lg cursor-pointer">
             LLENAR FORMULARIO DE REGISTRO
             <ArrowRight className="w-5 h-5" />
           </button>
@@ -91,7 +90,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
       {/* Footer */}
       <footer className="bg-stone-950 text-stone-500 py-12 border-t border-stone-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => onNavigate('home')}>
+          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <HeartHandshake className="h-6 w-6 text-stone-700" />
             <span className="font-bold text-lg tracking-tight text-stone-400">
               Colombia<span className="text-stone-600">Solidario</span>
@@ -103,11 +102,11 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
-            <button onClick={() => onNavigate('legal')} className="hover:text-stone-300 transition-colors">Términos y Privacidad</button>
-            <button onClick={() => onNavigate('legal')} className="hover:text-stone-300 transition-colors">Contacto</button>
+            <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Términos y Privacidad</button>
+            <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Contacto</button>
             <button 
-              onClick={() => onNavigate('admin-login')} 
-              className="text-stone-600 hover:text-stone-400 border border-stone-800 px-2.5 py-1 rounded-md text-xs transition-colors"
+              onClick={() => navigate('/admin/login')} 
+              className="text-stone-600 hover:text-stone-400 border border-stone-800 px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer"
               title="Acceso administrativo provisional"
             >
               Admin

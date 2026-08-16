@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import BusinessCard from './BusinessCard';
 import QuickViewModal from './QuickViewModal';
 import AdminLocationPicker from './AdminLocationPicker';
@@ -23,13 +24,10 @@ import {
 import { uploadImageToCloudinary } from '../utils/cloudinaryUploader';
 import { useBusinesses } from '../context/BusinessContext';
 
-interface AdminViewProps {
-  onBack: () => void;
-}
-
 const MAX_IMAGES = 5;
 
-export default function AdminView({ onBack }: AdminViewProps) {
+export default function AdminView() {
+  const navigate = useNavigate();
   const { addBusiness, isFirebaseConnected, user, logout } = useBusinesses();
 
   const [showPreviewModal, setShowPreviewModal] = useState(false);
@@ -234,7 +232,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
 
   const handleLogout = async () => {
     await logout();
-    onBack();
+    navigate('/');
   };
 
   return (
@@ -244,8 +242,8 @@ export default function AdminView({ onBack }: AdminViewProps) {
         {/* Header Bar */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
           <button 
-            onClick={onBack}
-            className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium text-sm transition-colors"
+            onClick={() => navigate('/')}
+            className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium text-sm transition-colors cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" />
             Volver a la plataforma

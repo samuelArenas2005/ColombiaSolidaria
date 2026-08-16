@@ -1,16 +1,15 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ExternalLink } from 'lucide-react';
 
-interface GoogleFormViewProps {
-  onBack: () => void;
-}
+export default function GoogleFormView() {
+  const navigate = useNavigate();
 
-export default function GoogleFormView({ onBack }: GoogleFormViewProps) {
   return (
     <div className="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
         <button 
-          onClick={onBack}
+          onClick={() => navigate('/')}
           className="inline-flex items-center gap-2 text-stone-600 hover:text-stone-900 font-medium text-sm transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />

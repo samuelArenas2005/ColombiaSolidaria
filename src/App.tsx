@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import Dashboard from './components/Dashboard';
@@ -16,63 +17,55 @@ import GoogleFormView from './components/GoogleFormView';
 import AccessibilityMenu from './components/AccessibilityMenu';
 import { BusinessProvider, useBusinesses } from './context/BusinessContext';
 
-function AppContent() {
-  const [currentView, setCurrentView] = useState<'home' | 'admin-login' | 'admin' | 'legal' | 'google-form'>('home');
+function PrivateRoute({ children }: { children: React.ReactNode }) {
   const { user } = useBusinesses();
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return <>{children}</>;
+}
 
-  const handleNavigate = (view: 'home' | 'admin-login' | 'admin' | 'legal' | 'google-form') => {
-    if (view === 'admin') {
-      // Guarded Private Route: Require authentication for Admin View
-      if (!user) {
-        setCurrentView('admin-login');
-        return;
-      }
-    }
-    setCurrentView(view);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+function AppRoutes() {
   return (
     <div className="min-h-screen bg-white selection:bg-rose-200 selection:text-rose-900 scroll-smooth">
       <AccessibilityMenu />
-      <Navbar currentView={currentView} onNavigate={handleNavigate} />
-      
-      {currentView === 'home' && (
-        <>
-          <main>
-            <Hero onNavigate={handleNavigate} />
-            <Dashboard />
-            <OrganizationsSection />
-          </main>
-          <TransparencyAndFooter onNavigate={handleNavigate} />
-        </>
-      )}
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Navbar />
+            <main>
+              <Hero />
+              <Dashboard />
+              <OrganizationsSection />
+            </main>
+            <TransparencyAndFooter />
+          </>
+        } />
 
-      {currentView === 'google-form' && (
-        <GoogleFormView onBack={() => handleNavigate('home')} />
-      )}
+        <Route path="/formulario" element={
+          <>
+            <Navbar />
+            <GoogleFormView />
+          </>
+        } />
 
-      {currentView === 'admin-login' && (
-        <AdminLogin 
-          onLogin={() => setCurrentView('admin')} 
-          onBack={() => setCurrentView('home')} 
-        />
-      )}
-      
-      {currentView === 'admin' && (
-        user ? (
-          <AdminView onBack={() => setCurrentView('home')} />
-        ) : (
-          <AdminLogin 
-            onLogin={() => setCurrentView('admin')} 
-            onBack={() => setCurrentView('home')} 
-          />
-        )
-      )}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-      {currentView === 'legal' && (
-        <LegalView onBack={() => setCurrentView('home')} />
-      )}
+        <Route path="/admin" element={
+          <PrivateRoute>
+            <AdminView />
+          </PrivateRoute>
+        } />
+
+        <Route path="/legal" element={
+          <>
+            <Navbar />
+            <LegalView />
+          </>
+        } />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </div>
   );
 }
@@ -80,7 +73,9 @@ function AppContent() {
 export default function App() {
   return (
     <BusinessProvider>
-      <AppContent />
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
     </BusinessProvider>
   );
 }

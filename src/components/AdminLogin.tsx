@@ -1,14 +1,11 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Lock, AlertCircle, CheckCircle, Loader2, HeartHandshake, ShieldAlert } from 'lucide-react';
 import { useBusinesses } from '../context/BusinessContext';
 import { sanitizeInput, isValidEmail, checkLoginRateLimit, recordFailedLoginAttempt, clearLoginAttempts } from '../utils/security';
 
-interface AdminLoginProps {
-  onLogin: () => void;
-  onBack: () => void;
-}
-
-export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
+export default function AdminLogin() {
+  const navigate = useNavigate();
   const { login, isFirebaseConnected, user } = useBusinesses();
 
   const [email, setEmail] = useState('');
@@ -21,9 +18,9 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
   // If already logged in, allow instant entry
   React.useEffect(() => {
     if (user) {
-      onLogin();
+      navigate('/admin');
     }
-  }, [user, onLogin]);
+  }, [user, navigate]);
 
   // Countdown timer for lockout
   React.useEffect(() => {
@@ -65,7 +62,7 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
       clearLoginAttempts(sanitizedEmail);
       setSuccessMessage('¡Acceso concedido! Redirigiendo...');
       setTimeout(() => {
-        onLogin();
+        navigate('/admin');
       }, 600);
     } catch (err: any) {
       console.error('Auth error:', err);
@@ -96,8 +93,8 @@ export default function AdminLogin({ onLogin, onBack }: AdminLoginProps) {
     <div className="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
       <div className="max-w-md w-full space-y-6">
         <button 
-          onClick={onBack}
-          className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium text-sm transition-colors"
+          onClick={() => navigate('/')}
+          className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium text-sm transition-colors cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" />
           Volver al inicio

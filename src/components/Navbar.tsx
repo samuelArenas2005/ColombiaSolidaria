@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { HeartHandshake, Menu, X } from 'lucide-react';
 
-interface NavbarProps {
-  currentView: 'home' | 'admin' | 'admin-login' | 'legal' | 'google-form';
-  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal' | 'google-form') => void;
-}
-
-export default function Navbar({ currentView, onNavigate }: NavbarProps) {
+export default function Navbar() {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isHome = location.pathname === '/';
 
   const handleNavClick = (href: string) => {
     setIsMobileMenuOpen(false);
-    if (currentView !== 'home') {
-      onNavigate('home');
+    if (!isHome) {
+      navigate('/');
       setTimeout(() => {
         const el = document.querySelector(href);
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -26,7 +25,7 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
         <div className="flex justify-between h-16 sm:h-20 items-center">
           <div 
             className="flex items-center gap-2.5 cursor-pointer flex-shrink-0"
-            onClick={() => onNavigate('home')}
+            onClick={() => navigate('/')}
           >
             <HeartHandshake className="h-8 w-8 text-rose-600 transition-transform hover:scale-105" />
             <span className="font-bold text-xl sm:text-2xl tracking-tight text-gray-900">
@@ -36,7 +35,7 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
           
           {/* Desktop Menu */}
           <div className="hidden md:flex ml-auto items-center space-x-6 lg:space-x-8 xl:space-x-10 text-sm lg:text-base font-medium">
-            {currentView === 'home' ? (
+            {isHome ? (
               <>
                 <a href="#inicio" className="text-gray-600 hover:text-gray-900 transition-colors py-1">Inicio</a>
                 <a href="#mapa" className="text-gray-600 hover:text-gray-900 transition-colors py-1">Mapa</a>
@@ -46,7 +45,7 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
               </>
             ) : (
               <button 
-                onClick={() => onNavigate('home')}
+                onClick={() => navigate('/')}
                 className="text-gray-600 hover:text-gray-900 transition-colors py-1 font-semibold cursor-pointer"
               >
                 Volver al Inicio
@@ -71,7 +70,7 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white border-b border-gray-100 shadow-lg absolute w-full left-0 top-16 sm:top-20 z-50">
           <div className="px-4 pt-3 pb-6 space-y-2 flex flex-col">
-            {currentView === 'home' && (
+            {isHome ? (
               <>
                 <a href="#inicio" onClick={() => handleNavClick('#inicio')} className="block px-3 py-3 rounded-xl text-base font-medium text-gray-900 hover:bg-stone-50 transition-colors">Inicio</a>
                 <a href="#mapa" onClick={() => handleNavClick('#mapa')} className="block px-3 py-3 rounded-xl text-base font-medium text-gray-900 hover:bg-stone-50 transition-colors">Mapa</a>
@@ -79,6 +78,16 @@ export default function Navbar({ currentView, onNavigate }: NavbarProps) {
                 <a href="#familias" onClick={() => handleNavClick('#familias')} className="block px-3 py-3 rounded-xl text-base font-medium text-gray-900 hover:bg-stone-50 transition-colors">Ayuda a Familias</a>
                 <a href="#transparencia" onClick={() => handleNavClick('#transparencia')} className="block px-3 py-3 rounded-xl text-base font-medium text-gray-900 hover:bg-stone-50 transition-colors">Cómo funciona</a>
               </>
+            ) : (
+              <button 
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  navigate('/');
+                }}
+                className="block px-3 py-3 rounded-xl text-base font-semibold text-gray-900 hover:bg-stone-50 transition-colors text-left"
+              >
+                Volver al Inicio
+              </button>
             )}
           </div>
         </div>
