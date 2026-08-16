@@ -51,7 +51,19 @@ export default function AdminLocationPicker({
     onChange(updated);
   }, [customPlaceName, businessName, customAddress, onChange]);
 
-  // Robust Map Initialization & Resize handling
+  const updateLocationCoordsRef = useRef(updateLocationCoords);
+  useEffect(() => {
+    updateLocationCoordsRef.current = updateLocationCoords;
+  }, [updateLocationCoords]);
+
+  // Sync marker position when location changes externally without recreating the map
+  useEffect(() => {
+    if (mapInstance.current && markerInstance.current && location) {
+      markerInstance.current.setLatLng([location.lat, location.lng]);
+    }
+  }, [location?.lat, location?.lng]);
+
+  // Robust Map Initialization & Resize handling (runs once per activation)
   useEffect(() => {
     if (!hasLocation) {
       if (mapInstance.current) {
@@ -114,12 +126,12 @@ export default function AdminLocationPicker({
 
         marker.on('dragend', () => {
           const pos = marker.getLatLng();
-          updateLocationCoords(pos.lat, pos.lng);
+          updateLocationCoordsRef.current(pos.lat, pos.lng);
         });
 
         map.on('click', (e: L.LeafletMouseEvent) => {
           marker.setLatLng(e.latlng);
-          updateLocationCoords(e.latlng.lat, e.latlng.lng);
+          updateLocationCoordsRef.current(e.latlng.lat, e.latlng.lng);
         });
 
         mapInstance.current = map;
@@ -169,7 +181,7 @@ export default function AdminLocationPicker({
         markerInstance.current = null;
       }
     };
-  }, [hasLocation, location?.lat, location?.lng, updateLocationCoords]);
+  }, [hasLocation]);
 
   // Handle GPS location
   const handleUseGPS = () => {

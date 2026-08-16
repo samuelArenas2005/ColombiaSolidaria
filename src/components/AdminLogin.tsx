@@ -115,8 +115,8 @@ export default function AdminLogin() {
             <div className="mb-6 p-3.5 bg-amber-50 border border-amber-200 rounded-2xl text-xs text-amber-800 flex items-start gap-2.5">
               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <div className="leading-relaxed">
-                <span className="font-bold block">Firebase no conectado aún</span>
-                Puedes iniciar sesión en modo local de prueba. Para conectar tu base de datos de Firebase, agrega los secrets en la configuración.
+                <span className="font-bold block">Base de datos local activa</span>
+                Puedes iniciar sesión en modo local de prueba. Para conectar tu base de datos en la nube, configura las credenciales correspondientes.
               </div>
             </div>
           )}

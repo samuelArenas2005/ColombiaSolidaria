@@ -35,9 +35,8 @@ export default function AdminView() {
   const [activeSocialLinks, setActiveSocialLinks] = useState<string[]>([]);
   const [newPaymentMethod, setNewPaymentMethod] = useState('');
   const [newSocialLink, setNewSocialLink] = useState('');
-  const [isConvertingImages, setIsConvertingImages] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<{id: string, file: File}[]>([]);
   const [isSaving, setIsSaving] = useState(false);
-  const [conversionSuccessMsg, setConversionSuccessMsg] = useState<string | null>(null);
   const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
   const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
 
@@ -57,7 +56,7 @@ export default function AdminView() {
     products: []
   });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
     
     const files = Array.from(e.target.files) as File[];
@@ -72,50 +71,45 @@ export default function AdminView() {
 
     const filesToProcess = files.slice(0, remainingSlots);
     if (files.length > remainingSlots) {
-      alert(`Se subirán solo ${remainingSlots} imagen(es) para no superar el límite de ${MAX_IMAGES}.`);
+      alert(`Se procesarán solo ${remainingSlots} imagen(es) para no superar el límite de ${MAX_IMAGES}.`);
     }
 
-    setIsConvertingImages(true);
-    setConversionSuccessMsg(null);
+    const newPendingItems = filesToProcess.map((file) => {
+      const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+      return { id, file };
+    });
 
-    try {
-      // Upload all files in parallel to Cloudinary
-      const cloudinaryUrls = await Promise.all(
-        filesToProcess.map(file => uploadImageToCloudinary(file))
-      );
+    const newProducts = newPendingItems.map(item => ({
+      id: item.id,
+      image: URL.createObjectURL(item.file),
+      name: item.file.name
+    }));
 
-      const newProducts = cloudinaryUrls.map((url, idx) => ({
-        id: `${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
-        image: url,
-        name: filesToProcess[idx]?.name || `Imagen ${idx + 1}`
-      }));
+    setPendingFiles(prev => [...prev, ...newPendingItems]);
+    setFormData(prev => {
+      const updatedProducts = [...prev.products, ...newProducts].slice(0, MAX_IMAGES);
+      return {
+        ...prev,
+        products: updatedProducts,
+        image: prev.image && prev.image.trim() !== '' ? prev.image : (updatedProducts[0]?.image || '')
+      };
+    });
 
-      setFormData(prev => {
-        const updatedProducts = [...prev.products, ...newProducts].slice(0, MAX_IMAGES);
-        return {
-          ...prev,
-          products: updatedProducts,
-          image: prev.image && prev.image.trim() !== '' ? prev.image : (updatedProducts[0]?.image || '')
-        };
-      });
-
-      setConversionSuccessMsg(`${cloudinaryUrls.length} ${cloudinaryUrls.length === 1 ? 'imagen subida' : 'imágenes subidas'} exitosamente a Cloudinary.`);
-      setTimeout(() => setConversionSuccessMsg(null), 4500);
-    } catch (err: any) {
-      console.error('Error al subir imágenes a Cloudinary:', err);
-      alert(err?.message || 'Error al subir la imagen a Cloudinary. Verifica tus secrets VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET.');
-    } finally {
-      setIsConvertingImages(false);
-      e.target.value = '';
-    }
+    e.target.value = '';
   };
 
   const handleRemoveImage = (id: string) => {
+    const productToRemove = formData.products.find(p => p.id === id);
+    if (productToRemove && productToRemove.image.startsWith('blob:')) {
+      URL.revokeObjectURL(productToRemove.image);
+    }
+
+    setPendingFiles(prev => prev.filter(f => f.id !== id));
     const updatedProducts = formData.products.filter(p => p.id !== id);
     setFormData(prev => ({
       ...prev,
       products: updatedProducts,
-      image: prev.image === prev.products.find(p => p.id === id)?.image ? (updatedProducts[0]?.image || '') : prev.image
+      image: prev.image === productToRemove?.image ? (updatedProducts[0]?.image || '') : prev.image
     }));
   };
 
@@ -197,9 +191,60 @@ export default function AdminView() {
     setIsSaving(true);
 
     try {
-      const savedId = await addBusiness(formData);
-      setSaveSuccessMsg(`¡Negocio "${formData.name}" guardado exitosamente en ${isFirebaseConnected ? 'Firebase Firestore' : 'el almacenamiento local'}!`);
+      let finalProducts = [...formData.products];
+      let mainImageUrl = formData.image;
+
+      // 1. Process pending images (Upload to Cloudinary)
+      if (pendingFiles.length > 0) {
+        try {
+          const uploadPromises = pendingFiles.map(async (item) => {
+            const cloudinaryUrl = await uploadImageToCloudinary(item.file);
+            return { id: item.id, url: cloudinaryUrl };
+          });
+
+          const uploadedResults = await Promise.all(uploadPromises);
+
+          // Update finalProducts with real Cloudinary URLs
+          finalProducts = finalProducts.map(product => {
+            const upload = uploadedResults.find(r => r.id === product.id);
+            return upload ? { ...product, image: upload.url } : product;
+          });
+
+          // Check if main image needs update
+          const mainImagePending = uploadedResults.find(r => {
+            const product = formData.products.find(p => p.id === r.id);
+            return product?.image === formData.image;
+          });
+          
+          if (mainImagePending) {
+            mainImageUrl = mainImagePending.url;
+          } else if (!mainImageUrl || mainImageUrl.startsWith('blob:')) {
+            mainImageUrl = finalProducts[0]?.image || '';
+          }
+        } catch (uploadErr: any) {
+          console.error('Error al subir imágenes a Cloudinary:', uploadErr);
+          throw new Error('Hubo un error al guardar la imagen, por favor intenta de nuevo o contacta a soporte.');
+        }
+      }
+
+      // 2. Prepare final data object
+      const businessDataToSave = {
+        ...formData,
+        image: mainImageUrl,
+        products: finalProducts
+      };
+
+      // 3. Save to database
+      await addBusiness(businessDataToSave);
       
+      setSaveSuccessMsg(`¡Negocio "${formData.name}" guardado exitosamente en la base de datos!`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      
+      // Revoke blob URLs to free memory
+      formData.products.forEach(p => {
+        if (p.image.startsWith('blob:')) URL.revokeObjectURL(p.image);
+      });
+
       // Reset form
       setFormData({
         id: 'new',
@@ -216,6 +261,7 @@ export default function AdminView() {
         socials: {},
         products: []
       });
+      setPendingFiles([]);
       setActivePaymentMethods([]);
       setActiveSocialLinks([]);
 
@@ -266,7 +312,7 @@ export default function AdminView() {
           </div>
         </div>
 
-        {/* Firebase Status Badge */}
+        {/* Database Status Badge */}
         <div className="mb-6 flex items-center justify-between bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
           <div className="flex items-center gap-3">
             <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFirebaseConnected ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
@@ -274,12 +320,12 @@ export default function AdminView() {
             </div>
             <div>
               <p className="text-xs font-bold text-stone-900">
-                {isFirebaseConnected ? 'Base de datos Firebase Firestore Activa' : 'Modo Almacenamiento Local (Sin Firebase)'}
+                {isFirebaseConnected ? 'Base de datos en la nube activa' : 'Modo Almacenamiento Local'}
               </p>
               <p className="text-[11px] text-stone-500">
                 {isFirebaseConnected 
-                  ? 'Todos los datos se guardan en la nube y se sincronizan en tiempo real con el landing page.' 
-                  : 'Los datos se guardan localmente hasta que ingreses tus credenciales de Firebase en los Secrets.'}
+                  ? 'Todos los datos se guardan en la base de datos y se sincronizan en tiempo real.' 
+                  : 'Los datos se guardan en el almacenamiento local del navegador.'}
               </p>
             </div>
           </div>
@@ -408,49 +454,27 @@ export default function AdminView() {
               <div className="space-y-4 mb-6">
                 {formData.products.length < MAX_IMAGES ? (
                   <div 
-                    className={`flex flex-col gap-4 items-center border-2 border-dashed rounded-2xl p-8 justify-center transition-all cursor-pointer ${
-                      isConvertingImages 
-                        ? 'border-indigo-300 bg-indigo-50/50 cursor-wait' 
-                        : 'border-stone-300 bg-stone-50 hover:bg-stone-100 hover:border-stone-400'
-                    }`}
-                    onClick={() => !isConvertingImages && document.getElementById('file-upload')?.click()}
+                    className="flex flex-col gap-4 items-center border-2 border-dashed rounded-2xl p-8 justify-center transition-all cursor-pointer border-stone-300 bg-stone-50 hover:bg-stone-100 hover:border-stone-400"
+                    onClick={() => document.getElementById('file-upload')?.click()}
                   >
                     <input 
                       id="file-upload" 
                       type="file" 
                       multiple 
                       accept="image/*" 
-                      disabled={isConvertingImages}
                       className="hidden" 
                       onChange={handleFileUpload} 
                     />
                     <div className="text-center">
-                      {isConvertingImages ? (
-                        <div className="flex flex-col items-center">
-                          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mx-auto mb-2" />
-                          <span className="text-sm font-medium text-indigo-900">Subiendo imágenes a Cloudinary...</span>
-                          <p className="text-xs text-indigo-600 mt-1">Almacenamiento CDN seguro y optimizado</p>
-                        </div>
-                      ) : (
-                        <>
-                          <UploadCloud className="w-10 h-10 text-stone-400 mx-auto mb-2" />
-                          <span className="text-sm font-medium text-stone-700">Haz clic para subir hasta {MAX_IMAGES - formData.products.length} fotos</span>
-                          <p className="text-xs text-stone-400 mt-1">Las imágenes se guardarán automáticamente en Cloudinary</p>
-                        </>
-                      )}
+                      <UploadCloud className="w-10 h-10 text-stone-400 mx-auto mb-2" />
+                      <span className="text-sm font-medium text-stone-700">Haz clic para añadir hasta {MAX_IMAGES - formData.products.length} fotos</span>
+                      <p className="text-xs text-stone-400 mt-1">Las fotos se subirán al servidor al momento de guardar el negocio</p>
                     </div>
                   </div>
                 ) : (
                   <div className="p-4 bg-stone-100 border border-stone-200 rounded-2xl text-xs text-stone-600 flex items-center justify-between">
                     <span className="font-semibold">Límite alcanzado: {MAX_IMAGES} de {MAX_IMAGES} fotos añadidas</span>
-                    <span className="text-[11px] text-stone-500">Elimina una foto si deseas subir otra diferente</span>
-                  </div>
-                )}
-
-                {conversionSuccessMsg && (
-                  <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-medium animate-fadeIn">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
-                    <span>{conversionSuccessMsg}</span>
+                    <span className="text-[11px] text-stone-500">Elimina una foto si deseas añadir otra diferente</span>
                   </div>
                 )}
                 
@@ -641,7 +665,7 @@ export default function AdminView() {
                   {isSaving ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      <span>Guardando en Firebase...</span>
+                      <span>Guardando en la base de datos...</span>
                     </>
                   ) : (
                     <>

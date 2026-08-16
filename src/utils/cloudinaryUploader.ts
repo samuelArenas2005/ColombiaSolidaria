@@ -13,7 +13,7 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   const uploadPreset = env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
   if (!cloudName || !cloudName.trim() || !uploadPreset || !uploadPreset.trim()) {
-    throw new Error('Cloudinary no está configurado. Por favor define VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en tus variables de entorno.');
+    throw new Error('Cloudinary no está configurado. Por favor define VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET en las variables de entorno.');
   }
 
   const formData = new FormData();
@@ -34,3 +34,4 @@ export async function uploadImageToCloudinary(file: File): Promise<string> {
   const data = await response.json();
   return data.secure_url || data.url;
 }
+
