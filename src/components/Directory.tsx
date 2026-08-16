@@ -6,35 +6,44 @@ import { Store, Eye, EyeOff } from 'lucide-react';
 interface DirectoryProps {
   businesses: Business[];
   onSelectBusiness: (b: Business) => void;
+  onViewOnMap?: (b: Business) => void;
 }
 
-const EXAMPLE_BUSINESS: Business = {
+export const EXAMPLE_BUSINESS: Business = {
   id: 'example-1',
   name: 'Ejemplo: Panadería La Esperanza',
   category: 'Alimentos',
   needType: 'donation',
   description: 'Perdimos el horno por daños estructurales. Necesitamos fondos para repararlo.',
-  fullDescription: 'Nuestra panadería ha estado en el centro de la ciudad por más de 15 años. El sismo agrietó las paredes y destruyó nuestro horno principal, dejando a 5 familias sin su principal fuente de ingreso. Cualquier aporte suma a reconstruir nuestro sueño.',
-  location: { lat: 3.2612, lng: -76.5398 },
-  image: 'https://images.unsplash.com/photo-1555507036-ab1f40ce88cb?auto=format&fit=crop&w=600&q=80',
+  fullDescription: 'Nuestra panadería ha estado en la zona por más de 15 años. El sismo agrietó las paredes y destruyó nuestro horno principal, dejando a 5 familias sin su principal fuente de ingreso. Cualquier aporte suma a reconstruir nuestro sueño.',
+  location: { 
+    lat: 3.3746, 
+    lng: -76.5336,
+    placeName: 'Universidad del Valle - Sede Meléndez, Cali',
+    address: 'Calle 13 # 100-00, Ciudad Universitaria Meléndez, Cali, Valle del Cauca, Colombia',
+    googleMapsUrl: 'https://www.google.com/maps/dir/?api=1&destination=3.3746,-76.5336'
+  },
+  image: 'https://picsum.photos/seed/panaderia123/600/400',
   contact: {
     phone: '3001234567',
     nequi: '3001234567',
     nequiName: 'Maria Esperanza Diaz',
     daviplata: '3001234567',
     daviplataName: 'Carlos Arturo Sanchez',
+    llaveBreB: '3001234567',
+    llaveBreBName: 'Maria Esperanza Diaz'
   },
   socials: {
     instagram: '@panlaesperanza',
     facebook: 'https://facebook.com/panlaesperanza',
   },
   products: [
-    { id: 'ep1', name: 'Pan Aliñado', image: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=300&q=80' },
-    { id: 'ep2', name: 'Buñuelos', image: 'https://images.unsplash.com/photo-1579618218206-a831e79cb5f1?auto=format&fit=crop&w=300&q=80' },
+    { id: 'ep1', name: 'Pan Aliñado', image: 'https://picsum.photos/seed/pan1/300/300' },
+    { id: 'ep2', name: 'Buñuelos', image: 'https://picsum.photos/seed/bunuelos1/300/300' },
   ]
 };
 
-export default function Directory({ businesses, onSelectBusiness }: DirectoryProps) {
+export default function Directory({ businesses, onSelectBusiness, onViewOnMap }: DirectoryProps) {
   const [showExample, setShowExample] = useState(false);
 
   if (businesses.length === 0) {
@@ -51,7 +60,7 @@ export default function Directory({ businesses, onSelectBusiness }: DirectoryPro
           
           <button 
             onClick={() => setShowExample(!showExample)}
-            className="flex items-center gap-2 text-sm font-bold text-stone-500 hover:text-stone-900 transition-colors px-5 py-2.5 rounded-full border border-stone-200 hover:border-stone-300 bg-white shadow-sm"
+            className="flex items-center gap-2 text-sm font-semibold text-stone-500 hover:text-stone-900 transition-colors px-5 py-2.5 rounded-full border border-stone-200 hover:border-stone-300 bg-white shadow-sm cursor-pointer"
           >
             {showExample ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             {showExample ? 'Ocultar ejemplo' : 'Ver un ejemplo'}
@@ -62,7 +71,8 @@ export default function Directory({ businesses, onSelectBusiness }: DirectoryPro
           <div className="mt-12 w-full max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
             <BusinessCard 
               business={EXAMPLE_BUSINESS} 
-              onOpen={() => onSelectBusiness(EXAMPLE_BUSINESS)} 
+              onOpen={() => onSelectBusiness(EXAMPLE_BUSINESS)}
+              onViewOnMap={onViewOnMap}
             />
           </div>
         )}
@@ -76,7 +86,8 @@ export default function Directory({ businesses, onSelectBusiness }: DirectoryPro
         <BusinessCard 
           key={business.id} 
           business={business} 
-          onOpen={() => onSelectBusiness(business)} 
+          onOpen={() => onSelectBusiness(business)}
+          onViewOnMap={onViewOnMap}
         />
       ))}
     </div>

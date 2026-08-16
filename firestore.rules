@@ -1,0 +1,58 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Validation helper for Business documents
+    function isValidBusiness(data) {
+      return data.name is string && data.name.size() >= 2 && data.name.size() <= 120 &&
+             data.category is string && data.category.size() <= 60 &&
+             data.needType in ['donation', 'sale'] &&
+             data.description is string && data.description.size() <= 300 &&
+             (!('fullDescription' in data) || (data.fullDescription is string && data.fullDescription.size() <= 2000)) &&
+             (!('image' in data) || (data.image is string && data.image.size() <= 500000)) &&
+             (!('products' in data) || (data.products is list && data.products.size() <= 5));
+    }
+
+    // Businesses Collection: Public read, Authenticated Admin write
+    match /businesses/{businessId} {
+      // Anyone can read businesses to support local solidarity directory & map
+      allow get, list: if true;
+
+      // Only authenticated users (admins) can create new business entries
+      allow create: if isSignedIn() && 
+                    isValidId(businessId) && 
+                    isValidBusiness(incoming());
+
+      // Only authenticated users (admins) can update existing businesses
+      allow update: if isSignedIn() && 
+                    isValidId(businessId) && 
+                    isValidBusiness(incoming());
+
+      // Only authenticated users (admins) can delete business entries
+      allow delete: if isSignedIn() && 
+                    isValidId(businessId);
+    }
+  }
+}

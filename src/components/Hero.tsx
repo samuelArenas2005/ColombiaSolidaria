@@ -1,7 +1,11 @@
 import React from 'react';
 import { Heart, Store } from 'lucide-react';
 
-export default function Hero() {
+interface HeroProps {
+  onNavigate: (view: 'home' | 'admin-login' | 'admin' | 'legal' | 'google-form') => void;
+}
+
+export default function Hero({ onNavigate }: HeroProps) {
   return (
     <section id="inicio" className="relative bg-stone-50 overflow-hidden">
       {/* Decorative background blob */}
@@ -18,7 +22,7 @@ export default function Hero() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-24 relative z-10">
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight mb-8 leading-tight">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 tracking-tight mb-8 leading-tight">
             RECONSTRUYAMOS JUNTOS: <br/>
             <span className="text-rose-600">Apoya a las Familias y Comunidades</span> Afectadas
           </h1>
@@ -29,18 +33,18 @@ export default function Hero() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <a 
               href="#directorio" 
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-rose-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-rose-700 transition-colors shadow-lg hover:shadow-xl hover:-translate-y-0.5"
             >
               <Heart className="w-5 h-5" />
               QUIERO AYUDAR
             </a>
-            <a 
-              href="#registrar" 
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-900 border-2 border-gray-200 px-8 py-4 rounded-full font-bold text-lg hover:border-gray-900 hover:bg-gray-50 transition-all"
+            <button 
+              onClick={() => onNavigate('google-form')}
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-900 border-2 border-gray-200 px-8 py-4 rounded-full font-semibold text-lg hover:border-gray-900 hover:bg-gray-50 transition-all cursor-pointer"
             >
               <Store className="w-5 h-5" />
               REGISTRAR INICIATIVA/AYUDA
-            </a>
+            </button>
           </div>
         </div>
       </div>

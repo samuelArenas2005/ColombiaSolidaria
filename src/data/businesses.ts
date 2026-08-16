@@ -6,6 +6,14 @@ export interface Product {
   name: string;
 }
 
+export interface BusinessLocation {
+  lat: number;
+  lng: number;
+  address?: string;
+  placeName?: string;
+  googleMapsUrl?: string;
+}
+
 export interface Business {
   id: string;
   name: string;
@@ -13,7 +21,7 @@ export interface Business {
   needType: NeedType;
   description: string;
   fullDescription: string;
-  location: { lat: number; lng: number };
+  location?: BusinessLocation;
   image: string;
   contact: {
     phone: string;
@@ -23,6 +31,8 @@ export interface Business {
     daviplataName?: string;
     bancolombia?: string;
     bancolombiaName?: string;
+    llaveBreB?: string;
+    llaveBreBName?: string;
   };
   socials?: {
     instagram?: string;

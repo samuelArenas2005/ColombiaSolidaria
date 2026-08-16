@@ -2,7 +2,7 @@ import React from 'react';
 import { ShieldCheck, HeartHandshake, AlertTriangle, ArrowRight } from 'lucide-react';
 
 interface FooterProps {
-  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal') => void;
+  onNavigate: (view: 'home' | 'admin' | 'admin-login' | 'legal' | 'google-form') => void;
 }
 
 export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
@@ -27,7 +27,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center mb-16">
             <ShieldCheck className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-            <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Transparencia y Verificación</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Transparencia y Verificación</h2>
             <p className="text-stone-400 text-lg">
               Sabemos que en tiempos de crisis la confianza es fundamental. Así es como aseguramos que tu ayuda llegue a quienes realmente la necesitan.
             </p>
@@ -64,7 +64,7 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
                     if (el) el.scrollIntoView({ behavior: 'smooth' });
                   }, 100);
                 }}
-                className="flex items-center gap-2 text-rose-400 hover:text-rose-300 font-bold text-sm uppercase tracking-wider transition-colors"
+                className="flex items-center gap-2 text-rose-400 hover:text-rose-300 font-semibold text-sm uppercase tracking-wider transition-colors cursor-pointer"
               >
                 <AlertTriangle className="w-4 h-4" />
                 Reportar Perfil
@@ -77,11 +77,11 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
       {/* Registration Section CTA */}
       <section id="registrar" className="bg-rose-600 text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-extrabold mb-4">¿Tu negocio fue afectado por el sismo?</h2>
+          <h2 className="text-3xl font-bold mb-4">¿Tu negocio fue afectado por el sismo?</h2>
           <p className="text-rose-100 mb-8 text-lg">
             Regístrate en nuestro directorio para recibir apoyo de la comunidad. Es completamente gratis y solo tomará unos minutos verificar tus datos.
           </p>
-          <button onClick={() => onNavigate('admin-login')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-bold hover:bg-stone-100 transition-colors shadow-lg">
+          <button onClick={() => onNavigate('google-form')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-semibold hover:bg-stone-100 transition-colors shadow-lg cursor-pointer">
             LLENAR FORMULARIO DE REGISTRO
             <ArrowRight className="w-5 h-5" />
           </button>
@@ -102,9 +102,16 @@ export default function TransparencyAndFooter({ onNavigate }: FooterProps) {
             Proyecto solidario gratuito para Colombia. Desarrollado por voluntarios.
           </p>
 
-          <div className="flex gap-4 text-sm font-medium">
+          <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
             <button onClick={() => onNavigate('legal')} className="hover:text-stone-300 transition-colors">Términos y Privacidad</button>
             <button onClick={() => onNavigate('legal')} className="hover:text-stone-300 transition-colors">Contacto</button>
+            <button 
+              onClick={() => onNavigate('admin-login')} 
+              className="text-stone-600 hover:text-stone-400 border border-stone-800 px-2.5 py-1 rounded-md text-xs transition-colors"
+              title="Acceso administrativo provisional"
+            >
+              Admin
+            </button>
           </div>
         </div>
       </footer>

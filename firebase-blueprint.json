@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "Business": {
+      "title": "Business",
+      "description": "Represents a local business or community initiative affected by an emergency requiring solidarity donations or sales support.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the business document"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the business",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "category": {
+          "type": "string",
+          "description": "Category of the business (e.g. Alimentos, Ropa, Hogar, Servicios)",
+          "maxLength": 60
+        },
+        "needType": {
+          "type": "string",
+          "enum": ["donation", "sale"],
+          "description": "Primary need type: donation for relief/reconstruction or sale for products"
+        },
+        "description": {
+          "type": "string",
+          "description": "Short summary description for cards",
+          "maxLength": 300
+        },
+        "fullDescription": {
+          "type": "string",
+          "description": "Detailed background story and damage report",
+          "maxLength": 2000
+        },
+        "image": {
+          "type": "string",
+          "description": "URL or WebP data of the main business cover image",
+          "maxLength": 500000
+        },
+        "location": {
+          "type": "object",
+          "description": "Geographical coordinates and address information"
+        },
+        "contact": {
+          "type": "object",
+          "description": "Direct contact phone and verified Colombian payment gateways (Nequi, Daviplata, Bancolombia, Bre-B)"
+        },
+        "socials": {
+          "type": "object",
+          "description": "Social media links and web presence"
+        },
+        "products": {
+          "type": "array",
+          "description": "List of up to 5 optimized product/damage photos",
+          "maxLength": 5
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp of creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the administrator who registered the business"
+        }
+      },
+      "required": ["name", "category", "needType", "description"]
+    }
+  },
+  "firestore": {
+    "/businesses/{businessId}": {
+      "schema": "Business",
+      "description": "Collection of verified businesses and community relief initiatives"
+    }
+  }
+}

@@ -1,19 +1,47 @@
 import React, { useState } from 'react';
 import BusinessCard from './BusinessCard';
 import QuickViewModal from './QuickViewModal';
+import AdminLocationPicker from './AdminLocationPicker';
 import { Business, NeedType } from '../data/businesses';
-import { Save, ArrowLeft, UploadCloud, X } from 'lucide-react';
+import { 
+  Save, 
+  ArrowLeft, 
+  UploadCloud, 
+  X, 
+  HandHeart, 
+  ShoppingBag, 
+  Plus, 
+  Loader2, 
+  Sparkles, 
+  CheckCircle2, 
+  LogOut, 
+  User as UserIcon,
+  AlertCircle,
+  Database,
+  Info
+} from 'lucide-react';
+import { uploadImageToCloudinary } from '../utils/cloudinaryUploader';
+import { useBusinesses } from '../context/BusinessContext';
 
 interface AdminViewProps {
   onBack: () => void;
 }
 
+const MAX_IMAGES = 5;
+
 export default function AdminView({ onBack }: AdminViewProps) {
+  const { addBusiness, isFirebaseConnected, user, logout } = useBusinesses();
+
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [activePaymentMethods, setActivePaymentMethods] = useState<string[]>([]);
   const [activeSocialLinks, setActiveSocialLinks] = useState<string[]>([]);
   const [newPaymentMethod, setNewPaymentMethod] = useState('');
   const [newSocialLink, setNewSocialLink] = useState('');
+  const [isConvertingImages, setIsConvertingImages] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [conversionSuccessMsg, setConversionSuccessMsg] = useState<string | null>(null);
+  const [saveSuccessMsg, setSaveSuccessMsg] = useState<string | null>(null);
+  const [saveErrorMsg, setSaveErrorMsg] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Business>({
     id: 'new',
@@ -22,7 +50,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
     needType: 'donation',
     description: '',
     fullDescription: '',
-    location: { lat: 3.2612, lng: -76.5398 },
+    location: undefined,
     image: '',
     contact: {
       phone: '',
@@ -31,22 +59,56 @@ export default function AdminView({ onBack }: AdminViewProps) {
     products: []
   });
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      const files = Array.from(e.target.files);
-      const newProducts = files.map(file => ({
-        id: Date.now().toString() + Math.random().toString(),
-        image: URL.createObjectURL(file),
-        name: 'Foto'
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const files = Array.from(e.target.files) as File[];
+    const currentCount = formData.products.length;
+    const remainingSlots = MAX_IMAGES - currentCount;
+
+    if (remainingSlots <= 0) {
+      alert(`Has alcanzado el límite máximo de ${MAX_IMAGES} imágenes por negocio.`);
+      e.target.value = '';
+      return;
+    }
+
+    const filesToProcess = files.slice(0, remainingSlots);
+    if (files.length > remainingSlots) {
+      alert(`Se subirán solo ${remainingSlots} imagen(es) para no superar el límite de ${MAX_IMAGES}.`);
+    }
+
+    setIsConvertingImages(true);
+    setConversionSuccessMsg(null);
+
+    try {
+      // Upload all files in parallel to Cloudinary
+      const cloudinaryUrls = await Promise.all(
+        filesToProcess.map(file => uploadImageToCloudinary(file))
+      );
+
+      const newProducts = cloudinaryUrls.map((url, idx) => ({
+        id: `${Date.now()}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+        image: url,
+        name: filesToProcess[idx]?.name || `Imagen ${idx + 1}`
       }));
+
       setFormData(prev => {
-        const updatedProducts = [...prev.products, ...newProducts];
+        const updatedProducts = [...prev.products, ...newProducts].slice(0, MAX_IMAGES);
         return {
           ...prev,
           products: updatedProducts,
-          image: prev.image ? prev.image : (updatedProducts[0]?.image || '')
+          image: prev.image && prev.image.trim() !== '' ? prev.image : (updatedProducts[0]?.image || '')
         };
       });
+
+      setConversionSuccessMsg(`${cloudinaryUrls.length} ${cloudinaryUrls.length === 1 ? 'imagen subida' : 'imágenes subidas'} exitosamente a Cloudinary.`);
+      setTimeout(() => setConversionSuccessMsg(null), 4500);
+    } catch (err: any) {
+      console.error('Error al subir imágenes a Cloudinary:', err);
+      alert(err?.message || 'Error al subir la imagen a Cloudinary. Verifica tus secrets VITE_CLOUDINARY_CLOUD_NAME y VITE_CLOUDINARY_UPLOAD_PRESET.');
+    } finally {
+      setIsConvertingImages(false);
+      e.target.value = '';
     }
   };
 
@@ -114,45 +176,161 @@ export default function AdminView({ onBack }: AdminViewProps) {
     });
   };
 
+  const handleSaveBusiness = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaveSuccessMsg(null);
+    setSaveErrorMsg(null);
+
+    if (!formData.name.trim()) {
+      setSaveErrorMsg('Por favor ingresa el nombre del negocio.');
+      return;
+    }
+
+    if (!formData.category) {
+      setSaveErrorMsg('Por favor selecciona una categoría.');
+      return;
+    }
+
+    if (!formData.description.trim()) {
+      setSaveErrorMsg('Por favor incluye una descripción corta.');
+      return;
+    }
+
+    setIsSaving(true);
+
+    try {
+      const savedId = await addBusiness(formData);
+      setSaveSuccessMsg(`¡Negocio "${formData.name}" guardado exitosamente en ${isFirebaseConnected ? 'Firebase Firestore' : 'el almacenamiento local'}!`);
+      
+      // Reset form
+      setFormData({
+        id: 'new',
+        name: '',
+        category: '',
+        needType: 'donation',
+        description: '',
+        fullDescription: '',
+        location: undefined,
+        image: '',
+        contact: {
+          phone: '',
+        },
+        socials: {},
+        products: []
+      });
+      setActivePaymentMethods([]);
+      setActiveSocialLinks([]);
+
+      setTimeout(() => {
+        setSaveSuccessMsg(null);
+      }, 5000);
+    } catch (err: any) {
+      console.error('Error guardando negocio:', err);
+      setSaveErrorMsg(err?.message || 'Error al guardar el negocio. Revisa la conexión o las reglas.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    onBack();
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
-        <button 
-          onClick={onBack}
-          className="mb-8 inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium transition-colors"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          Volver a la plataforma
-        </button>
+        
+        {/* Header Bar */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <button 
+            onClick={onBack}
+            className="inline-flex items-center gap-2 text-stone-500 hover:text-stone-900 font-medium text-sm transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Volver a la plataforma
+          </button>
+
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-white border border-stone-200 rounded-full text-xs text-stone-700 shadow-xs">
+              <UserIcon className="w-3.5 h-3.5 text-stone-500" />
+              <span className="font-semibold">{user?.email || 'Administrador'}</span>
+            </div>
+
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-full text-xs font-semibold transition-colors"
+              title="Cerrar sesión administrativa"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Cerrar sesión</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Firebase Status Badge */}
+        <div className="mb-6 flex items-center justify-between bg-white p-4 rounded-2xl border border-stone-200 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isFirebaseConnected ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>
+              <Database className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-stone-900">
+                {isFirebaseConnected ? 'Base de datos Firebase Firestore Activa' : 'Modo Almacenamiento Local (Sin Firebase)'}
+              </p>
+              <p className="text-[11px] text-stone-500">
+                {isFirebaseConnected 
+                  ? 'Todos los datos se guardan en la nube y se sincronizan en tiempo real con el landing page.' 
+                  : 'Los datos se guardan localmente hasta que ingreses tus credenciales de Firebase en los Secrets.'}
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-gray-900">Panel de Administración</h1>
-          <p className="text-stone-600 mt-2">Crea un nuevo perfil de negocio afectado. Los cambios se previsualizarán en tiempo real a la derecha.</p>
+          <h1 className="text-3xl font-extrabold text-stone-900 tracking-tight">Panel de Administración</h1>
+          <p className="text-stone-600 mt-1 text-sm">Registra un nuevo negocio o iniciativa comunitaria afectada.</p>
         </div>
+
+        {saveSuccessMsg && (
+          <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs font-medium text-emerald-900 flex items-center gap-3 animate-fadeIn shadow-xs">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 flex-shrink-0" />
+            <span>{saveSuccessMsg}</span>
+          </div>
+        )}
+
+        {saveErrorMsg && (
+          <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs font-medium text-rose-900 flex items-center gap-3 animate-fadeIn shadow-xs">
+            <AlertCircle className="w-5 h-5 text-rose-600 flex-shrink-0" />
+            <span>{saveErrorMsg}</span>
+          </div>
+        )}
 
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Form Section */}
           <div className="w-full lg:w-2/3 bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-stone-200">
-            <h2 className="text-xl font-bold mb-6 border-b border-stone-100 pb-4 text-gray-900">Información del Negocio</h2>
+            <h2 className="text-xl font-bold mb-6 border-b border-stone-100 pb-4 text-stone-900">Información del Negocio</h2>
             
-            <div className="space-y-6">
+            <form onSubmit={handleSaveBusiness} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-bold text-stone-700 mb-2">Nombre del Negocio</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Nombre del Negocio *</label>
                   <input 
                     type="text"
+                    required
                     value={formData.name}
                     onChange={e => handleChange('name', e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow text-stone-900"
                     placeholder="Ej. Panadería La Esperanza"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-stone-700 mb-2">Categoría</label>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Categoría *</label>
                   <select 
+                    required
                     value={formData.category}
                     onChange={e => handleChange('category', e.target.value)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow cursor-pointer text-stone-800 font-normal"
                   >
                     <option value="">Seleccione una categoría</option>
                     <option value="Alimentos">Alimentos y Víveres</option>
@@ -166,53 +344,137 @@ export default function AdminView({ onBack }: AdminViewProps) {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-bold text-stone-700 mb-2">Tipo de Necesidad</label>
-                  <select 
-                    value={formData.needType}
-                    onChange={e => handleChange('needType', e.target.value as NeedType)}
-                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+              {/* Need Type Selector */}
+              <div>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Tipo de Necesidad</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleChange('needType', 'donation')}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                      formData.needType === 'donation'
+                        ? 'border-rose-500 bg-rose-500 text-white shadow-sm'
+                        : 'border-stone-200 bg-stone-50 hover:bg-rose-50/50 hover:border-rose-200 text-stone-700'
+                    }`}
                   >
-                    <option value="donation">🔴 Solo Donaciones</option>
-                    <option value="sale">🟢 Venta Activa</option>
-                  </select>
+                    <div className={`p-2 rounded-lg ${formData.needType === 'donation' ? 'bg-white/20 text-white' : 'bg-white text-rose-600 border border-stone-200'}`}>
+                      <HandHeart className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold">Solo Donaciones</p>
+                      <p className={`text-[11px] font-normal ${formData.needType === 'donation' ? 'text-rose-100' : 'text-stone-500'}`}>
+                        Para reconstrucción y pérdidas totales
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleChange('needType', 'sale')}
+                    className={`flex items-center gap-3 p-3.5 rounded-xl border text-left transition-all ${
+                      formData.needType === 'sale'
+                        ? 'border-teal-600 bg-teal-600 text-white shadow-sm'
+                        : 'border-stone-200 bg-stone-50 hover:bg-teal-50/50 hover:border-teal-200 text-stone-700'
+                    }`}
+                  >
+                    <div className={`p-2 rounded-lg ${formData.needType === 'sale' ? 'bg-white/20 text-white' : 'bg-white text-teal-600 border border-stone-200'}`}>
+                      <ShoppingBag className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs sm:text-sm font-semibold">Venta Activa</p>
+                      <p className={`text-[11px] font-normal ${formData.needType === 'sale' ? 'text-teal-100' : 'text-stone-500'}`}>
+                        Productos y servicios disponibles
+                      </p>
+                    </div>
+                  </button>
                 </div>
               </div>
 
-              <h2 className="text-xl font-bold mb-4 mt-8 border-b border-stone-100 pb-4 text-gray-900">Galería de Imágenes</h2>
-              <div className="space-y-4 mb-6">
-                <div 
-                  className="flex flex-col gap-4 items-center border-2 border-dashed border-stone-300 rounded-2xl p-8 justify-center bg-stone-50 hover:bg-stone-100 transition-colors cursor-pointer" 
-                  onClick={() => document.getElementById('file-upload')?.click()}
-                >
-                  <input 
-                    id="file-upload" 
-                    type="file" 
-                    multiple 
-                    accept="image/*" 
-                    className="hidden" 
-                    onChange={handleFileUpload} 
-                  />
-                  <div className="text-center">
-                    <UploadCloud className="w-10 h-10 text-stone-400 mx-auto mb-2" />
-                    <span className="text-sm font-bold text-stone-600">Haz clic para subir imágenes</span>
-                    <p className="text-xs text-stone-400 mt-1">PNG, JPG, WEBP</p>
-                  </div>
+              {/* Image Gallery with 5 images maximum constraint */}
+              <div className="flex items-center justify-between mb-2 mt-8 border-b border-stone-100 pb-4">
+                <div>
+                  <h2 className="text-xl font-bold text-stone-900">Galería de Imágenes</h2>
+                  <p className="text-xs text-stone-500 mt-0.5">Máximo {MAX_IMAGES} fotos por negocio alojadas en Cloudinary</p>
                 </div>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    formData.products.length >= MAX_IMAGES 
+                      ? 'bg-amber-100 text-amber-800 border border-amber-300' 
+                      : 'bg-stone-100 text-stone-700 border border-stone-200'
+                  }`}>
+                    {formData.products.length}/{MAX_IMAGES}
+                  </span>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-6">
+                {formData.products.length < MAX_IMAGES ? (
+                  <div 
+                    className={`flex flex-col gap-4 items-center border-2 border-dashed rounded-2xl p-8 justify-center transition-all cursor-pointer ${
+                      isConvertingImages 
+                        ? 'border-indigo-300 bg-indigo-50/50 cursor-wait' 
+                        : 'border-stone-300 bg-stone-50 hover:bg-stone-100 hover:border-stone-400'
+                    }`}
+                    onClick={() => !isConvertingImages && document.getElementById('file-upload')?.click()}
+                  >
+                    <input 
+                      id="file-upload" 
+                      type="file" 
+                      multiple 
+                      accept="image/*" 
+                      disabled={isConvertingImages}
+                      className="hidden" 
+                      onChange={handleFileUpload} 
+                    />
+                    <div className="text-center">
+                      {isConvertingImages ? (
+                        <div className="flex flex-col items-center">
+                          <Loader2 className="w-10 h-10 text-indigo-600 animate-spin mx-auto mb-2" />
+                          <span className="text-sm font-medium text-indigo-900">Subiendo imágenes a Cloudinary...</span>
+                          <p className="text-xs text-indigo-600 mt-1">Almacenamiento CDN seguro y optimizado</p>
+                        </div>
+                      ) : (
+                        <>
+                          <UploadCloud className="w-10 h-10 text-stone-400 mx-auto mb-2" />
+                          <span className="text-sm font-medium text-stone-700">Haz clic para subir hasta {MAX_IMAGES - formData.products.length} fotos</span>
+                          <p className="text-xs text-stone-400 mt-1">Las imágenes se guardarán automáticamente en Cloudinary</p>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 bg-stone-100 border border-stone-200 rounded-2xl text-xs text-stone-600 flex items-center justify-between">
+                    <span className="font-semibold">Límite alcanzado: {MAX_IMAGES} de {MAX_IMAGES} fotos añadidas</span>
+                    <span className="text-[11px] text-stone-500">Elimina una foto si deseas subir otra diferente</span>
+                  </div>
+                )}
+
+                {conversionSuccessMsg && (
+                  <div className="flex items-center gap-2 p-3 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-xl text-xs font-medium animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+                    <span>{conversionSuccessMsg}</span>
+                  </div>
+                )}
                 
                 {formData.products.length > 0 && (
                   <div className="flex gap-4 overflow-x-auto pb-4 snap-x mt-4">
                     {formData.products.map(p => (
-                      <div key={p.id} className={`snap-start flex-shrink-0 w-48 relative rounded-xl overflow-hidden border-2 ${formData.image === p.image ? 'border-rose-500' : 'border-stone-200'}`}>
-                        <img src={p.image} className="w-full h-32 object-cover" alt="preview" />
-                        <div className="absolute top-2 left-2 bg-white/90 rounded px-2 py-1 text-xs shadow-sm">
-                          <label className="flex items-center gap-1 cursor-pointer font-bold text-stone-700">
-                            <input type="radio" name="mainImage" checked={formData.image === p.image} onChange={() => handleSetMainImage(p.image)} className="text-rose-500 focus:ring-rose-500" />
+                      <div key={p.id} className={`snap-start flex-shrink-0 w-48 relative rounded-xl overflow-hidden border-2 ${formData.image === p.image ? 'border-stone-900' : 'border-stone-200'}`}>
+                        {p.image && p.image.trim() !== '' ? (
+                          <img src={p.image} className="w-full h-32 object-cover" alt="preview" />
+                        ) : (
+                          <div className="w-full h-32 bg-stone-100 flex items-center justify-center text-xs text-stone-400">Sin foto</div>
+                        )}
+                        <div className="absolute top-2 left-2 bg-white/90 backdrop-blur-xs rounded px-2 py-1 text-xs shadow-sm">
+                          <label className="flex items-center gap-1 cursor-pointer font-medium text-stone-700">
+                            <input type="radio" name="mainImage" checked={formData.image === p.image} onChange={() => handleSetMainImage(p.image)} className="text-stone-900 focus:ring-stone-400" />
                             Principal
                           </label>
                         </div>
-                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveImage(p.id); }} className="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-1 rounded-full shadow"><X className="w-3 h-3" /></button>
+                        <div className="absolute bottom-2 left-2 bg-stone-900/80 backdrop-blur-xs text-stone-100 rounded px-1.5 py-0.5 text-[10px] font-mono font-medium shadow-xs">
+                          WEBP
+                        </div>
+                        <button type="button" onClick={(e) => { e.stopPropagation(); handleRemoveImage(p.id); }} className="absolute top-2 right-2 bg-stone-900/80 hover:bg-red-600 text-white p-1 rounded-full shadow transition-colors"><X className="w-3 h-3" /></button>
                       </div>
                     ))}
                   </div>
@@ -220,90 +482,127 @@ export default function AdminView({ onBack }: AdminViewProps) {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2">Descripción Corta (Mostrada en la tarjeta)</label>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Descripción Corta *</label>
                 <textarea 
+                  required
                   value={formData.description}
                   onChange={e => handleChange('description', e.target.value)}
                   rows={2}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow resize-none"
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow resize-none text-stone-900"
                   placeholder="Perdimos el horno por daños estructurales. Necesitamos fondos para repararlo."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2">Historia Completa (Mostrada en Vista Rápida)</label>
+                <label className="block text-sm font-medium text-stone-700 mb-2">Historia Completa</label>
                 <textarea 
                   value={formData.fullDescription}
                   onChange={e => handleChange('fullDescription', e.target.value)}
                   rows={4}
-                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow resize-none"
-                  placeholder="Nuestra panadería ha estado en el centro de Jamundí por más de 15 años..."
+                  className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow resize-none text-stone-900"
+                  placeholder="Cuéntanos con detalle la situación del negocio, cuántas familias dependen de él y cómo se utilizarán los fondos..."
                 />
               </div>
 
-              <h2 className="text-xl font-bold mb-6 mt-8 border-b border-stone-100 pb-4 text-gray-900">Contacto y Donaciones</h2>
+              {/* Location Picker with GPS & Autocomplete */}
+              <div className="mt-8">
+                <AdminLocationPicker 
+                  location={formData.location}
+                  onChange={(loc) => handleChange('location', loc)}
+                />
+              </div>
+
+              {/* Verified Contact & Banking Details */}
+              <h2 className="text-xl font-bold mb-6 mt-8 border-b border-stone-100 pb-4 text-stone-900">Contacto y Métodos de Pago</h2>
               
-              <div className="mb-6">
-                <label className="block text-sm font-bold text-stone-700 mb-2">WhatsApp de Contacto</label>
-                <input 
-                  type="text"
-                  value={formData.contact.phone}
-                  onChange={e => handleContactChange('phone', e.target.value)}
-                  className="w-full md:w-1/2 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-shadow"
-                  placeholder="3001234567"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-stone-700 mb-2">Teléfono / WhatsApp *</label>
+                  <input 
+                    type="tel"
+                    required
+                    value={formData.contact.phone}
+                    onChange={e => handleContactChange('phone', e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow text-stone-900"
+                    placeholder="300 123 4567"
+                  />
+                </div>
               </div>
 
-              <div className="space-y-6">
-                {/* Dynamic Payment Methods */}
+              {/* Dynamic Payment Gateways */}
+              <div className="space-y-4 mt-6">
                 {activePaymentMethods.map(method => (
-                  <div key={method} className="relative grid grid-cols-1 md:grid-cols-2 gap-4 pb-6 border-b border-stone-100">
-                    <button type="button" onClick={() => removePaymentMethod(method)} className="absolute -top-2 right-0 text-stone-400 hover:text-red-500 transition-colors bg-white rounded-full"><X className="w-4 h-4" /></button>
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Número {method.charAt(0).toUpperCase() + method.slice(1)}</label>
-                      <input type="text" value={(formData.contact as any)[method] || ''} onChange={e => handleContactChange(method as any, e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="3001234567" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-stone-700 mb-1">Titular {method.charAt(0).toUpperCase() + method.slice(1)}</label>
-                      <input type="text" value={(formData.contact as any)[`${method}Name`] || ''} onChange={e => handleContactChange(`${method}Name` as any, e.target.value)} className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" placeholder="Ej. Juan Perez" />
+                  <div key={method} className="p-4 bg-stone-50 rounded-2xl border border-stone-200 relative">
+                    <button 
+                      type="button" 
+                      onClick={() => removePaymentMethod(method)}
+                      className="absolute top-4 right-4 text-stone-400 hover:text-red-500 transition-colors"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                    <h4 className="font-semibold text-stone-800 text-sm mb-3 capitalize">{method}</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1">Número / Llave</label>
+                        <input 
+                          type="text" 
+                          value={(formData.contact as any)[method] || ''} 
+                          onChange={e => handleContactChange(method as any, e.target.value)}
+                          className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm text-stone-900 focus:ring-2 focus:ring-stone-400 outline-none"
+                          placeholder="Número o llave"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-stone-600 mb-1">Titular de la cuenta</label>
+                        <input 
+                          type="text" 
+                          value={(formData.contact as any)[`${method}Name`] || ''} 
+                          onChange={e => handleContactChange(`${method}Name` as any, e.target.value)}
+                          className="w-full bg-white border border-stone-200 rounded-xl px-3 py-2 text-sm text-stone-900 focus:ring-2 focus:ring-stone-400 outline-none"
+                          placeholder="Nombre del titular"
+                        />
+                      </div>
                     </div>
                   </div>
                 ))}
-                
+
                 <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
                   <select 
-                    value={newPaymentMethod} 
+                    value={newPaymentMethod}
                     onChange={e => setNewPaymentMethod(e.target.value)}
-                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow cursor-pointer text-stone-800 font-normal"
                   >
                     <option value="">Añadir método de pago...</option>
                     {!activePaymentMethods.includes('nequi') && <option value="nequi">Nequi</option>}
                     {!activePaymentMethods.includes('daviplata') && <option value="daviplata">Daviplata</option>}
                     {!activePaymentMethods.includes('bancolombia') && <option value="bancolombia">Bancolombia</option>}
+                    {!activePaymentMethods.includes('llaveBreB') && <option value="llaveBreB">Bre-B (Llave Banco)</option>}
                   </select>
                   <button 
                     type="button" 
                     onClick={addPaymentMethod}
                     disabled={!newPaymentMethod}
-                    className="bg-rose-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-stone-900 text-white font-medium py-3 px-6 rounded-xl hover:bg-stone-800 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
-                    Añadir
+                    <Plus className="w-4 h-4" />
+                    <span>Añadir</span>
                   </button>
                 </div>
               </div>
 
-              <h2 className="text-xl font-bold mb-6 mt-8 border-b border-stone-100 pb-4 text-gray-900">Redes Sociales y Web</h2>
+              {/* Social Networks */}
+              <h2 className="text-xl font-bold mb-6 mt-8 border-b border-stone-100 pb-4 text-stone-900">Redes Sociales y Web</h2>
               
               <div className="space-y-4 mb-6">
                 {activeSocialLinks.map(network => (
                   <div key={network} className="relative flex items-center gap-4">
                     <div className="flex-1">
-                      <label className="block text-xs font-bold text-stone-700 mb-1">{network.charAt(0).toUpperCase() + network.slice(1)}</label>
+                      <label className="block text-xs font-medium text-stone-700 mb-1">{network.charAt(0).toUpperCase() + network.slice(1)}</label>
                       <input 
                         type="text" 
                         value={(formData.socials as any)[network] || ''} 
                         onChange={e => handleSocialChange(network as any, e.target.value)} 
-                        className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-rose-500 transition-shadow" 
+                        className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-stone-400 transition-shadow text-stone-900" 
                         placeholder={network === 'website' ? 'https://...' : '@usuario'} 
                       />
                     </div>
@@ -315,7 +614,7 @@ export default function AdminView({ onBack }: AdminViewProps) {
                   <select 
                     value={newSocialLink} 
                     onChange={e => setNewSocialLink(e.target.value)}
-                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-rose-500 transition-shadow cursor-pointer"
+                    className="w-full sm:flex-1 sm:w-auto bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow cursor-pointer text-stone-800 font-normal"
                   >
                     <option value="">Añadir red social...</option>
                     {!activeSocialLinks.includes('instagram') && <option value="instagram">Instagram</option>}
@@ -327,29 +626,41 @@ export default function AdminView({ onBack }: AdminViewProps) {
                     type="button" 
                     onClick={addSocialLink}
                     disabled={!newSocialLink}
-                    className="bg-rose-500 text-white font-bold py-3 px-6 rounded-xl hover:bg-rose-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-stone-900 text-white font-medium py-3 px-6 rounded-xl hover:bg-stone-800 transition-colors shadow-sm disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
                   >
-                    Añadir
+                    <Plus className="w-4 h-4" />
+                    <span>Añadir</span>
                   </button>
                 </div>
               </div>
 
               <div className="pt-6">
                 <button 
-                  className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-gray-900 text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-800 transition-colors shadow-md"
+                  type="submit"
+                  disabled={isSaving}
+                  className="w-full sm:w-auto inline-flex justify-center items-center gap-2 bg-stone-900 text-white font-semibold py-3.5 px-8 rounded-xl hover:bg-stone-800 transition-colors shadow-md disabled:opacity-60"
                 >
-                  <Save className="w-5 h-5" />
-                  GUARDAR NEGOCIO
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Guardando en Firebase...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5" />
+                      <span>GUARDAR NEGOCIO EN BASE DE DATOS</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-            </div>
+            </form>
           </div>
 
           {/* Preview Section */}
           <div className="w-full lg:w-1/3">
             <div className="sticky top-8">
-              <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-4">Previsualización de Tarjeta</h3>
+              <h3 className="text-xs font-semibold text-stone-500 uppercase tracking-wider mb-4">Previsualización de Tarjeta</h3>
               <div className="max-w-sm">
                 <BusinessCard 
                   business={formData} 

@@ -7,7 +7,7 @@ export default function OrganizationsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <HeartHandshake className="w-12 h-12 text-rose-500 mx-auto mb-4" />
-          <h2 className="text-3xl md:text-4xl font-extrabold mb-4">Ayuda a Familias Afectadas</h2>
+          <h2 className="text-3xl md:text-4xl font-bold mb-4">Ayuda a Familias Afectadas</h2>
           <p className="text-stone-600 text-lg">
             Para garantizar que la ayuda de emergencia (refugio, alimentos, reubicación) llegue de forma segura y sin riesgo de fraude, hemos centralizado las donaciones a hogares a través de organizaciones oficiales y verificadas en terreno.
           </p>
@@ -27,7 +27,7 @@ export default function OrganizationsSection() {
               href="https://www.cruzrojacolombiana.org" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full flex justify-center items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold py-3 rounded-xl transition-colors"
+              className="w-full flex justify-center items-center gap-2 bg-stone-100 hover:bg-stone-200 text-stone-900 font-semibold py-3 rounded-xl transition-colors"
             >
               <Heart className="w-4 h-4" />
               DONAR AHORA
@@ -47,7 +47,7 @@ export default function OrganizationsSection() {
               href="https://terremoto-cali-puntos-criticos.netlify.app" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+              className="w-full flex justify-center items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
             >
               <MapPin className="w-4 h-4" />
               VER MAPA Y CONTACTOS
@@ -67,7 +67,7 @@ export default function OrganizationsSection() {
               href="https://personnofound.github.io/HaciendoComunidad/" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-sm"
+              className="w-full flex justify-center items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-xl transition-colors shadow-sm"
             >
               <Search className="w-4 h-4" />
               VER ZONAS AFECTADAS
