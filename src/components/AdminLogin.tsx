@@ -146,7 +146,7 @@ export default function AdminLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-stone-50 border border-stone-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:ring-2 focus:ring-stone-900 transition-shadow"
-                  placeholder="admin@jamundisolidario.org"
+                  placeholder="admin@colombiasolidario.org"
                 />
               </div>
             </div>
@@ -190,7 +190,7 @@ export default function AdminLogin() {
           {/* Volunteer recommendation & contact message */}
           <div className="mt-8 pt-6 border-t border-stone-100 text-center">
             <p className="text-xs text-stone-500 leading-relaxed">
-              ¿Deseas registrar un negocio o unirte como voluntario? Contáctanos a través de nuestros canales oficiales o comunícate con el equipo organizador en Jamundí para obtener tus credenciales de acceso administrativo.
+              ¿Deseas registrar un negocio o unirte como voluntario? Contáctanos a través de nuestros canales oficiales o comunícate con el equipo organizador para obtener tus credenciales de acceso administrativo.
             </p>
           </div>
         </div>

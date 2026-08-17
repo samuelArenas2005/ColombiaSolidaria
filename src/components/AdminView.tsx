@@ -4,6 +4,7 @@ import BusinessCard from './BusinessCard';
 import QuickViewModal from './QuickViewModal';
 import AdminLocationPicker from './AdminLocationPicker';
 import { Business, NeedType } from '../data/businesses';
+import { CATEGORIES_DATA } from '../data/categories';
 import { 
   Save, 
   ArrowLeft, 
@@ -369,7 +370,18 @@ export default function AdminView() {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-stone-700 mb-2">Categoría *</label>
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 mb-2">
+                    <label className="block text-sm font-medium text-stone-700">Categoría *</label>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/categorias')}
+                      className="inline-flex items-center gap-1 text-xs text-stone-500 hover:text-stone-900 underline underline-offset-2 transition-colors cursor-pointer"
+                      title="Ver guía y subcategorías disponibles"
+                    >
+                      <Info className="w-3.5 h-3.5 text-stone-400" />
+                      <span>Ver guía de categorías</span>
+                    </button>
+                  </div>
                   <select 
                     required
                     value={formData.category}
@@ -377,13 +389,11 @@ export default function AdminView() {
                     className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-stone-400 transition-shadow cursor-pointer text-stone-800 font-normal"
                   >
                     <option value="">Seleccione una categoría</option>
-                    <option value="Alimentos">Alimentos y Víveres</option>
-                    <option value="Ropa">Ropa y Textiles</option>
-                    <option value="Hogar">Hogar y Construcción</option>
-                    <option value="Servicios">Servicios Generales</option>
-                    <option value="Salud">Salud y Cuidado</option>
-                    <option value="Agro">Agro y Mascotas</option>
-                    <option value="Otros">Otros</option>
+                    {CATEGORIES_DATA.map(cat => (
+                      <option key={cat.id} value={cat.name}>
+                        {cat.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>

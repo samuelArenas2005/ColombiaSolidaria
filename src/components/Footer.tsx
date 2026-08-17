@@ -107,6 +107,7 @@ export default function TransparencyAndFooter() {
           </p>
 
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
+            <button onClick={() => navigate('/categorias')} className="hover:text-stone-300 transition-colors cursor-pointer">Guía de Categorías</button>
             <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Términos y Privacidad</button>
             <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Contacto</button>
           </div>

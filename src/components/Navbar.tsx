@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { HeartHandshake, Menu, X } from 'lucide-react';
+import { HeartHandshake, Menu, X, Store } from 'lucide-react';
 
 export default function Navbar() {
   const navigate = useNavigate();
@@ -89,6 +89,20 @@ export default function Navbar() {
                 Volver al Inicio
               </button>
             )}
+
+            {/* Mobile-only "Registrar tu negocio" button */}
+            <div className="pt-2 border-t border-stone-100">
+              <a
+                href="https://docs.google.com/forms/d/e/1FAIpQLSeZOYoSLKH1ZGvajW3XX9yPBZDU1gEjzbwB2gDWuDVB5nafRg/viewform?usp=header"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors shadow-xs cursor-pointer"
+              >
+                <Store className="w-4 h-4" />
+                <span>Registrar tu negocio</span>
+              </a>
+            </div>
           </div>
         </div>
       )}

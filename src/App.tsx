@@ -13,6 +13,7 @@ import TransparencyAndFooter from './components/Footer';
 import AdminView from './components/AdminView';
 import AdminLogin from './components/AdminLogin';
 import LegalView from './components/LegalView';
+import CategoriesView from './components/CategoriesView';
 import AccessibilityMenu from './components/AccessibilityMenu';
 import { BusinessProvider, useBusinesses } from './context/BusinessContext';
 
@@ -53,6 +54,13 @@ function AppRoutes() {
           <>
             <Navbar />
             <LegalView />
+          </>
+        } />
+
+        <Route path="/categorias" element={
+          <>
+            <Navbar />
+            <CategoriesView />
           </>
         } />
 

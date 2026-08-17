@@ -1,5 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Business, NeedType } from '../data/businesses';
+import { MAIN_CATEGORY_NAMES } from '../data/categories';
 import { useBusinesses } from '../context/BusinessContext';
 import MapSection from './MapSection';
 import Directory, { EXAMPLE_BUSINESS } from './Directory';
@@ -9,6 +11,7 @@ import { Filter, X, ChevronLeft, ChevronRight, HandHeart, ShoppingBag, Layers, L
 const ITEMS_PER_PAGE = 3;
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const { businesses, isLoading } = useBusinesses();
   const [selectedBusiness, setSelectedBusiness] = useState<Business | null>(null);
   const [focusedBusiness, setFocusedBusiness] = useState<Business | null>(null);
@@ -19,9 +22,9 @@ export default function Dashboard() {
   const directoryRef = React.useRef<HTMLDivElement>(null);
 
   const categories = useMemo(() => {
-    const cats = new Set(businesses.map(b => b.category));
+    const cats = new Set([...MAIN_CATEGORY_NAMES, ...businesses.map(b => b.category).filter(Boolean)]);
     return ['all', ...Array.from(cats)];
-  }, []);
+  }, [businesses]);
 
   const filteredBusinesses = useMemo(() => {
     return businesses.filter(b => {
@@ -80,18 +83,18 @@ export default function Dashboard() {
         </div>
         
         {/* Minimalist Filters */}
-        <div className="flex flex-wrap items-center gap-2.5 bg-stone-50 dark:bg-stone-900 p-2.5 rounded-2xl border border-stone-200 dark:border-stone-800">
-          <div className="flex items-center gap-1.5 px-2 text-stone-500 text-xs font-semibold uppercase tracking-wider">
+        <div className="w-full lg:w-auto flex flex-wrap items-center gap-2 bg-stone-50 dark:bg-stone-900 p-2 sm:p-2.5 rounded-2xl border border-stone-200 dark:border-stone-800">
+          <div className="hidden sm:flex items-center gap-1.5 px-2 text-stone-500 text-xs font-semibold uppercase tracking-wider">
             <Filter className="w-4 h-4" />
             <span>Filtrar</span>
           </div>
 
           {/* Need Type Filter Segmented Buttons / Selector */}
-          <div className="flex items-center gap-1 bg-white dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm">
+          <div className="flex items-center gap-1 bg-white dark:bg-stone-800 p-1 rounded-xl border border-stone-200 dark:border-stone-700 shadow-sm w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setNeedFilter('all')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial text-center px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 needFilter === 'all'
                   ? 'bg-stone-900 text-white shadow-sm'
                   : 'text-stone-600 dark:text-stone-300 hover:text-stone-900 dark:hover:text-white'
@@ -102,40 +105,53 @@ export default function Dashboard() {
             <button
               type="button"
               onClick={() => setNeedFilter('donation')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 needFilter === 'donation'
                   ? 'bg-rose-500 text-white shadow-sm'
                   : 'text-stone-600 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400'
               }`}
             >
               <HandHeart className={`w-3.5 h-3.5 ${needFilter === 'donation' ? 'text-white' : 'text-rose-500'}`} />
-              <span>Solo Donaciones</span>
+              <span>Donaciones</span>
             </button>
             <button
               type="button"
               onClick={() => setNeedFilter('sale')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              className={`flex-1 sm:flex-initial inline-flex items-center justify-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                 needFilter === 'sale'
                   ? 'bg-teal-600 text-white shadow-sm'
                   : 'text-stone-600 dark:text-stone-300 hover:text-teal-600 dark:hover:text-teal-400'
               }`}
             >
               <ShoppingBag className={`w-3.5 h-3.5 ${needFilter === 'sale' ? 'text-white' : 'text-teal-600'}`} />
-              <span>Venta Activa</span>
+              <span>Venta</span>
             </button>
           </div>
           
-          {/* Category Dropdown */}
-          <select 
-            className="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 shadow-sm focus:ring-2 focus:ring-stone-400 outline-none cursor-pointer"
-            value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
-          >
-            <option value="all">Todas las categorías</option>
-            {categories.filter(c => c !== 'all').map(c => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+          {/* Category Dropdown & Guide Link */}
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <select 
+              className="flex-1 sm:w-52 min-w-0 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl px-3 py-2 text-xs font-semibold text-stone-700 dark:text-stone-200 shadow-sm focus:ring-2 focus:ring-stone-400 outline-none cursor-pointer truncate"
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="all">Todas las categorías</option>
+              {categories.filter(c => c !== 'all').map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+
+            <button
+              type="button"
+              onClick={() => navigate('/categorias')}
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:text-rose-600 dark:hover:text-rose-400 hover:border-rose-200 rounded-xl text-xs font-semibold shadow-xs transition-all cursor-pointer flex-shrink-0 whitespace-nowrap"
+              title="Consultar qué incluye cada categoría"
+            >
+              <Layers className="w-3.5 h-3.5 text-rose-500 flex-shrink-0" />
+              <span>Guía</span>
+              <span className="hidden md:inline">de categorías</span>
+            </button>
+          </div>
         </div>
       </div>
 
