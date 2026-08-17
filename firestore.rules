@@ -54,5 +54,12 @@ service cloud.firestore {
       allow delete: if isSignedIn() && 
                     isValidId(businessId);
     }
+
+    // Audit Logs Collection: Authenticated Admin read and create only
+    match /audit_logs/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && isValidId(logId);
+      allow update, delete: if false; // Immutable
+    }
   }
 }

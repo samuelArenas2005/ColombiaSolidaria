@@ -7,7 +7,9 @@ import {
   deleteDoc, 
   updateDoc, 
   serverTimestamp,
-  getDocs
+  getDocs,
+  query,
+  orderBy
 } from 'firebase/firestore';
 import { 
   signInWithEmailAndPassword, 
@@ -17,10 +19,12 @@ import {
   User 
 } from 'firebase/auth';
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
-import { Business } from '../data/businesses';
+import { Business, AuditLog } from '../data/businesses';
+import { deleteImageFromCloudinary } from '../utils/cloudinaryUploader';
 
 interface BusinessContextType {
   businesses: Business[];
+  auditLogs: AuditLog[];
   isLoading: boolean;
   user: User | null;
   authLoading: boolean;
@@ -30,15 +34,17 @@ interface BusinessContextType {
   logout: () => Promise<void>;
   addBusiness: (business: Business) => Promise<string>;
   updateBusiness: (id: string, business: Partial<Business>) => Promise<void>;
-  deleteBusiness: (id: string) => Promise<void>;
+  deleteBusiness: (id: string, businessName?: string) => Promise<void>;
 }
 
 const LOCAL_STORAGE_KEY = 'jamundi_solidario_businesses_v1';
+const LOCAL_STORAGE_AUDIT_KEY = 'jamundi_solidario_audit_v1';
 
 const BusinessContext = createContext<BusinessContextType | undefined>(undefined);
 
 export function BusinessProvider({ children }: { children: React.ReactNode }) {
   const [businesses, setBusinesses] = useState<Business[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState<boolean>(true);
@@ -130,6 +136,65 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // Load audit logs when authenticated
+  useEffect(() => {
+    if (!user) {
+      setAuditLogs([]);
+      return;
+    }
+
+    if (isFirebaseConfigured && db) {
+      const auditCollection = collection(db, 'audit_logs');
+      const q = query(auditCollection, orderBy('timestamp', 'desc'));
+      
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const logs: AuditLog[] = [];
+        snapshot.forEach((docSnapshot) => {
+          logs.push({ id: docSnapshot.id, ...docSnapshot.data() } as AuditLog);
+        });
+        setAuditLogs(logs);
+      }, (error) => {
+        console.warn('Aviso de Audit Logs:', error?.message);
+        try {
+          const cached = localStorage.getItem(LOCAL_STORAGE_AUDIT_KEY);
+          if (cached) setAuditLogs(JSON.parse(cached));
+        } catch (e) {}
+      });
+      return () => unsubscribe();
+    } else {
+      try {
+        const cached = localStorage.getItem(LOCAL_STORAGE_AUDIT_KEY);
+        if (cached) setAuditLogs(JSON.parse(cached));
+      } catch (e) {}
+    }
+  }, [user]);
+
+  const logAuditAction = async (businessName: string, action: 'CREATE' | 'DELETE') => {
+    if (!user) return;
+    const logId = `log_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const logData: Omit<AuditLog, 'id'> = {
+      businessName,
+      action,
+      userEmail: user.email || 'Admin',
+      timestamp: new Date().toISOString()
+    };
+
+    if (isFirebaseConfigured && db) {
+      try {
+        await setDoc(doc(db, 'audit_logs', logId), logData);
+      } catch (e) {
+        console.error('Error saving audit log', e);
+      }
+    } else {
+      const newLog = { id: logId, ...logData };
+      setAuditLogs(prev => {
+        const updated = [newLog, ...prev];
+        localStorage.setItem(LOCAL_STORAGE_AUDIT_KEY, JSON.stringify(updated));
+        return updated;
+      });
+    }
+  };
+
   const login = async (email: string, pass: string) => {
     if (auth) {
       await signInWithEmailAndPassword(auth, email, pass);
@@ -203,6 +268,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       try {
         const businessDocRef = doc(db, 'businesses', docId);
         await setDoc(businessDocRef, businessPayload);
+        await logAuditAction(businessPayload.name, 'CREATE');
         return docId;
       } catch (error) {
         handleFirestoreError(error, OperationType.CREATE, `businesses/${docId}`);
@@ -216,8 +282,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       const updated = [newBusiness, ...businesses.filter(b => b.id !== docId)];
       setBusinesses(updated);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      await logAuditAction(businessPayload.name, 'CREATE');
       return docId;
     }
+    return ''; // added to satisfy typescript if error thrown
   };
 
   const updateBusiness = async (id: string, business: Partial<Business>): Promise<void> => {
@@ -244,11 +312,24 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const deleteBusiness = async (id: string): Promise<void> => {
+  const deleteBusiness = async (id: string, businessName?: string): Promise<void> => {
+    let targetName = businessName;
+    let targetImageUrl = '';
+    
+    const found = businesses.find(b => b.id === id);
+    if (found) {
+      targetName = targetName || found.name;
+      targetImageUrl = found.image || '';
+    }
+
     if (isFirebaseConfigured && db) {
       try {
         const businessDocRef = doc(db, 'businesses', id);
         await deleteDoc(businessDocRef);
+        if (targetName) await logAuditAction(targetName, 'DELETE');
+        if (targetImageUrl) {
+          await deleteImageFromCloudinary(targetImageUrl).catch(e => console.warn('No se pudo eliminar imagen en Cloudinary:', e));
+        }
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, `businesses/${id}`);
       }
@@ -256,6 +337,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       const updated = businesses.filter(b => b.id !== id);
       setBusinesses(updated);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+      if (targetName) await logAuditAction(targetName, 'DELETE');
+      if (targetImageUrl) {
+        await deleteImageFromCloudinary(targetImageUrl).catch(e => console.warn('No se pudo eliminar imagen en Cloudinary:', e));
+      }
     }
   };
 
@@ -263,6 +348,7 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
     <BusinessContext.Provider
       value={{
         businesses,
+        auditLogs,
         isLoading,
         user,
         authLoading,

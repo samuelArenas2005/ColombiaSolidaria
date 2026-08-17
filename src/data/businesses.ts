@@ -43,4 +43,12 @@ export interface Business {
   products: Product[];
 }
 
+export interface AuditLog {
+  id: string;
+  businessName: string;
+  action: 'CREATE' | 'DELETE';
+  userEmail: string;
+  timestamp: string;
+}
+
 export const businesses: Business[] = [];
