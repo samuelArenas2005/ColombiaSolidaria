@@ -13,7 +13,6 @@ import TransparencyAndFooter from './components/Footer';
 import AdminView from './components/AdminView';
 import AdminLogin from './components/AdminLogin';
 import LegalView from './components/LegalView';
-import GoogleFormView from './components/GoogleFormView';
 import AccessibilityMenu from './components/AccessibilityMenu';
 import { BusinessProvider, useBusinesses } from './context/BusinessContext';
 
@@ -39,13 +38,6 @@ function AppRoutes() {
               <OrganizationsSection />
             </main>
             <TransparencyAndFooter />
-          </>
-        } />
-
-        <Route path="/formulario" element={
-          <>
-            <Navbar />
-            <GoogleFormView />
           </>
         } />
 

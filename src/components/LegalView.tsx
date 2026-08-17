@@ -86,11 +86,11 @@ export default function LegalView() {
                     <p className="font-medium text-gray-900 break-all">samuelarenas0511@gmail.com</p>
                   </div>
                 </a>
-                <a href="tel:+573172715675" className="flex items-center gap-3 bg-white px-4 py-4 rounded-xl border border-stone-200 hover:border-emerald-300 hover:shadow-sm transition-all flex-1 min-w-0">
+                <a href="wa.link/2jrznk" className="flex items-center gap-3 bg-white px-4 py-4 rounded-xl border border-stone-200 hover:border-emerald-300 hover:shadow-sm transition-all flex-1 min-w-0">
                   <Phone className="w-6 h-6 text-emerald-500 flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-stone-500">Teléfono / WhatsApp</p>
-                    <p className="font-medium text-gray-900 break-all">317 271 5675</p>
+                    <p className="font-medium text-gray-900 break-all">318 3109623</p>
                   </div>
                 </a>
               </div>

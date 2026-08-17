@@ -1,6 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Accessibility, X, Moon, Sun, ZoomIn, ZoomOut, Contrast } from 'lucide-react';
+import { X, Moon, Sun, ZoomIn, ZoomOut, Contrast } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
+const UniversalAccessIcon = ({ className = "w-6 h-6" }: { className?: string }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    viewBox="0 0 100 100" 
+    fill="none"
+    className={className}
+  >
+    <circle cx="50" cy="50" r="42" fill="none" stroke="currentColor" strokeWidth="8"/>
+    <circle cx="50" cy="28" r="8" fill="currentColor"/>
+    <path d="M 22 43 L 78 43" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+    <path d="M 50 43 L 50 65" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+    <path d="M 50 63 L 35 88" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+    <path d="M 50 63 L 65 88" stroke="currentColor" strokeWidth="8" strokeLinecap="round"/>
+  </svg>
+);
 
 export default function AccessibilityMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -36,7 +52,7 @@ export default function AccessibilityMenu() {
         className="bg-stone-900 text-white p-3 rounded-l-xl shadow-xl hover:bg-stone-800 transition-colors flex items-center justify-center border border-r-0 border-stone-700"
         aria-label="Menú de Accesibilidad"
       >
-        {isOpen ? <X className="w-6 h-6" /> : <Accessibility className="w-6 h-6" />}
+        {isOpen ? <X className="w-6 h-6" /> : <UniversalAccessIcon className="w-6 h-6" />}
       </button>
 
       {/* Panel */}
@@ -50,7 +66,7 @@ export default function AccessibilityMenu() {
           >
             <div className="mb-4 pb-3 border-b border-stone-100 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Accessibility className="w-5 h-5 text-emerald-600" />
+                <UniversalAccessIcon className="w-5 h-5 text-emerald-600" />
                 <h3 className="font-bold text-gray-900">Accesibilidad</h3>
               </div>
               <button onClick={() => setIsOpen(false)} className="text-stone-400 hover:text-stone-600 p-1">

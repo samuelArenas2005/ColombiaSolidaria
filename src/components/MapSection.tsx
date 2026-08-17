@@ -502,22 +502,6 @@ export default function MapSection({
           )}
           <span>{userLocation ? 'Mi ubicación' : 'Centrar'}</span>
         </button>
-
-        {/* Debug Switch for Bubble Clustering */}
-        <button
-          type="button"
-          onClick={() => setDebugMode(!debugMode)}
-          className={`backdrop-blur-md px-3 py-1.5 rounded-full border shadow-sm flex items-center gap-1.5 text-xs font-semibold transition-all ${
-            debugMode 
-              ? 'bg-stone-900 text-white border-stone-900' 
-              : 'bg-white/95 dark:bg-stone-900/95 text-stone-600 dark:text-stone-400 border-stone-200 dark:border-stone-800 hover:text-stone-900'
-          }`}
-          title="Activar o desactivar puntos de prueba para visualizar las burbujas agrupadas"
-        >
-          <Bug className="w-3.5 h-3.5" />
-          <span>{debugMode ? 'Debug: Burbujas Cali ON' : 'Probar Burbujas (Cali)'}</span>
-          {debugMode && <Check className="w-3 h-3 text-emerald-400" />}
-        </button>
       </div>
 
       {/* Floating Selected Business Marker Card Popup */}

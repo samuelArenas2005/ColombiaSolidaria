@@ -80,10 +80,15 @@ export default function TransparencyAndFooter() {
           <p className="text-rose-100 mb-8 text-lg">
             Regístrate en nuestro directorio para recibir apoyo de la comunidad. Es completamente gratis y solo tomará unos minutos verificar tus datos.
           </p>
-          <button onClick={() => navigate('/formulario')} className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-semibold hover:bg-stone-100 transition-colors shadow-lg cursor-pointer">
+          <a 
+            href="https://docs.google.com/forms/d/e/1FAIpQLSeZOYoSLKH1ZGvajW3XX9yPBZDU1gEjzbwB2gDWuDVB5nafRg/viewform?usp=header"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-white text-rose-600 px-8 py-4 rounded-full font-semibold hover:bg-stone-100 transition-colors shadow-lg cursor-pointer"
+          >
             LLENAR FORMULARIO DE REGISTRO
             <ArrowRight className="w-5 h-5" />
-          </button>
+          </a>
         </div>
       </section>
 
@@ -104,13 +109,6 @@ export default function TransparencyAndFooter() {
           <div className="flex flex-wrap items-center justify-center gap-4 text-sm font-medium">
             <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Términos y Privacidad</button>
             <button onClick={() => navigate('/legal')} className="hover:text-stone-300 transition-colors cursor-pointer">Contacto</button>
-            <button 
-              onClick={() => navigate('/admin/login')} 
-              className="text-stone-600 hover:text-stone-400 border border-stone-800 px-2.5 py-1 rounded-md text-xs transition-colors cursor-pointer"
-              title="Acceso administrativo provisional"
-            >
-              Admin
-            </button>
           </div>
         </div>
       </footer>

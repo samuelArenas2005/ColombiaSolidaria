@@ -37,13 +37,15 @@ export default function Hero() {
               <Heart className="w-5 h-5" />
               QUIERO AYUDAR
             </a>
-            <button 
-              onClick={() => navigate('/formulario')}
+            <a 
+              href="https://docs.google.com/forms/d/e/1FAIpQLSeZOYoSLKH1ZGvajW3XX9yPBZDU1gEjzbwB2gDWuDVB5nafRg/viewform?usp=header"
+              target="_blank"
+              rel="noopener noreferrer"
               className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-white text-gray-900 border-2 border-gray-200 px-8 py-4 rounded-full font-semibold text-lg hover:border-gray-900 hover:bg-gray-50 transition-all cursor-pointer"
             >
               <Store className="w-5 h-5" />
               REGISTRAR INICIATIVA/AYUDA
-            </button>
+            </a>
           </div>
         </div>
       </div>
