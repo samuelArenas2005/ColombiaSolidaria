@@ -20,7 +20,6 @@ import {
 } from 'firebase/auth';
 import { db, auth, isFirebaseConfigured, handleFirestoreError, OperationType } from '../firebase';
 import { Business, AuditLog } from '../data/businesses';
-import { deleteImageFromCloudinary } from '../utils/cloudinaryUploader';
 
 interface BusinessContextType {
   businesses: Business[];
@@ -314,12 +313,10 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
 
   const deleteBusiness = async (id: string, businessName?: string): Promise<void> => {
     let targetName = businessName;
-    let targetImageUrl = '';
     
     const found = businesses.find(b => b.id === id);
     if (found) {
       targetName = targetName || found.name;
-      targetImageUrl = found.image || '';
     }
 
     if (isFirebaseConfigured && db) {
@@ -327,9 +324,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
         const businessDocRef = doc(db, 'businesses', id);
         await deleteDoc(businessDocRef);
         if (targetName) await logAuditAction(targetName, 'DELETE');
-        if (targetImageUrl) {
-          await deleteImageFromCloudinary(targetImageUrl).catch(e => console.warn('No se pudo eliminar imagen en Cloudinary:', e));
-        }
       } catch (error) {
         handleFirestoreError(error, OperationType.DELETE, `businesses/${id}`);
       }
@@ -338,9 +332,6 @@ export function BusinessProvider({ children }: { children: React.ReactNode }) {
       setBusinesses(updated);
       localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
       if (targetName) await logAuditAction(targetName, 'DELETE');
-      if (targetImageUrl) {
-        await deleteImageFromCloudinary(targetImageUrl).catch(e => console.warn('No se pudo eliminar imagen en Cloudinary:', e));
-      }
     }
   };
 
