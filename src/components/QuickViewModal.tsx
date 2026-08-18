@@ -126,7 +126,7 @@ export default function QuickViewModal({ business, onClose, onViewOnMap }: Quick
                   {/* Transparency Link */}
                   <a href="#transparencia" onClick={onClose} className="flex items-start gap-2 bg-stone-50 p-3 rounded-xl border border-stone-100 text-xs text-stone-600 hover:bg-stone-100 transition-colors">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 flex-shrink-0 mt-0.5" />
-                    <p>Iniciativa verificada. ColombiaSolidario no cobra comisiones. Tu ayuda va 100% al emprendedor.</p>
+                    <p>ColombiaSolidario no cobra comisiones. Tu ayuda va 100% al emprendedor.</p>
                   </a>
                 </div>
 
@@ -237,7 +237,7 @@ export default function QuickViewModal({ business, onClose, onViewOnMap }: Quick
                                 {hasProdImage ? (
                                   <img 
                                     src={p.image} 
-                                    alt={p.name || 'Producto'} 
+                                    alt="Producto" 
                                     className="w-full h-full object-cover group-hover:scale-110 transition-transform" 
                                   />
                                 ) : (
@@ -249,7 +249,6 @@ export default function QuickViewModal({ business, onClose, onViewOnMap }: Quick
                                   </div>
                                 )}
                               </div>
-                              <p className="text-[10px] font-medium text-stone-600 text-center truncate">{p.name}</p>
                             </div>
                           );
                         })}

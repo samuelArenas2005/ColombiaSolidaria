@@ -50,7 +50,7 @@ export default function CategoriesView() {
                   Estructura y Clasificación de Negocios
                 </h1>
                 <p className="text-stone-600 dark:text-stone-300 mt-2 text-sm leading-relaxed max-w-2xl">
-                  Consulta las <strong>11 categorías principales</strong> de la plataforma y el desglose de productos, servicios y oficios que comprende cada una.
+                  Consulta las <strong>13 categorías principales</strong> de la plataforma y el desglose de productos, servicios y oficios que comprende cada una.
                 </p>
               </div>
 

@@ -135,6 +135,28 @@ export const CATEGORIES_DATA: CategoryDefinition[] = [
       'Salsas, Mermeladas, Dips y Conservas artesanales',
       'Snacks y pasabocas caseros'
     ]
+  },
+  {
+    id: 'alojamiento-turismo',
+    name: 'Alojamiento y Turismo',
+    description: 'Servicios de hospedaje, turismo y descanso para viajeros y visitantes.',
+    iconName: 'Map',
+    subcategories: [
+      'Hotel / Hostal',
+      'Hospedaje familiar / Posada',
+      'Finca Turística / Zona de Camping'
+    ]
+  },
+  {
+    id: 'transporte-logistica',
+    name: 'Transporte y Logística (Vehículos de trabajo)',
+    description: 'Servicios de movilización de pasajeros, carga, trasteos y domicilios.',
+    iconName: 'Truck',
+    subcategories: [
+      'Transporte de Pasajeros (Taxi, plataformas, transporte escolar)',
+      'Transporte de Carga / Fletes / Mudanzas',
+      'Mensajería y Domicilios (Motos y bicicletas de trabajo)'
+    ]
   }
 ];
 
