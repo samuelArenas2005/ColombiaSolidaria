@@ -79,11 +79,11 @@ export default function LegalView() {
                 Si detectas alguna irregularidad, deseas dar de baja un perfil, o requieres soporte técnico, puedes contactarnos a través de los siguientes medios:
               </p>
               <div className="flex flex-col md:flex-row gap-6">
-                <a href="mailto:samuelarenas0511@gmail.com" className="flex items-center gap-3 bg-white px-4 py-4 rounded-xl border border-stone-200 hover:border-rose-300 hover:shadow-sm transition-all flex-1 min-w-0">
+                <a href="mailto:colombiasoldaria@gmail.com" className="flex items-center gap-3 bg-white px-4 py-4 rounded-xl border border-stone-200 hover:border-rose-300 hover:shadow-sm transition-all flex-1 min-w-0">
                   <Mail className="w-6 h-6 text-rose-500 flex-shrink-0" />
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-stone-500">Correo Electrónico</p>
-                    <p className="font-medium text-gray-900 break-all">samuelarenas0511@gmail.com</p>
+                    <p className="font-medium text-gray-900 break-all">colombiasoldaria@gmail.com</p>
                   </div>
                 </a>
                 <a href="wa.link/2jrznk" className="flex items-center gap-3 bg-white px-4 py-4 rounded-xl border border-stone-200 hover:border-emerald-300 hover:shadow-sm transition-all flex-1 min-w-0">
